@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LEARNnow — Smart Learning Web App
 
 Transform scattered YouTube learning into a structured, personalized, and engaging journey.
@@ -75,3 +76,7 @@ Track/
 - This repo is under active development; APIs may change.
 - Aim: clean, testable, deployment-ready code you’re proud to show.
 
+=======
+# LERNnow
+LEARNnow isn’t just another learning app—it’s your personal knowledge revolution. It takes random YouTube chaos and forges it into laser-focused learning journeys with AI mentorship, gamification, and career roadmaps. Learn smarter, track discipline, and showcase growth—because your future deserves structure.
+>>>>>>> 96266b4bb841d0b3c7b7efd34c167bb729f6679f
