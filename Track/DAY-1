@@ -1,0 +1,41 @@
+LEARNnow — DAY-1 Progress (Hinglish)
+
+Aaj humne project ka foundation strong kiya. Ye sab cheezein READY hain:
+
+1) Domain Models (Entities) tayaar
+- Topic: name, description, purpose, language, level, timestamps; Videos/Quizzes se relation.
+- Video: youtubeId, title, channel, durationSec, language, position, chaptersJson, timestamps; Topic se ManyToOne; Quiz se OneToOne (optional).
+- User: name, email (unique), password, role, preferredLanguage, timestamps; UserProgress se OneToMany.
+- Quiz: subtopic, difficulty (enum), language, purpose, active, timestamps; Topic se ManyToOne.
+- UserProgress: user, topic, status (enum), lastSeenAt, secondsWatched, timestamps.
+- ScoreCard: user, accuracy, consistency, discipline, dedication, streakDays, updatedAt (ab entity bhi hai).
+
+2) Enums add kiye gaye
+- Difficulty: EASY, MEDIUM, HARD
+- ProgressStatus: NOT_STARTED, IN_PROGRESS, COMPLETED
+
+3) JPA Mappings sahi kiye (explanatory comments ke saath)
+- Topic → Videos: OneToMany mappedBy=vTopic (FK Video par rehta hai).
+- Video → Topic: ManyToOne tId.
+- Video ↔ Quiz: OneToOne optional, cascade remove kiya (Quiz galti se delete na ho).
+- User → UserProgress: OneToMany mappedBy=uPuser (collection fix).
+- Quiz → Topic: ManyToOne tId.
+- ScoreCard ↔ User: OneToOne with FK uId (cascade ALL hata diya).
+
+4) Repositories wired
+- TopicRepo, VideoRepo, UserRepo, UserProgressRepo, ScoreCardRepo, QuizRepo → sab JpaRepository se extend karte hain.
+
+Abhi kya pending hai (shortlist)
+- DTOs + Validation + Global Exception Handler.
+- Flyway migrations + Dev DB config (H2 ya MySQL).
+- Topic ke basic endpoints (POST/GET) + Swagger UI.
+- Minimal tests (Repo + Controller slice).
+
+Simple plan for Day-2
+- Dev profile + H2 config + Flyway V1__init.sql.
+- TopicService + TopicController (create/list).
+- OpenAPI docs enable + smoke test.
+
+Motivation note
+- Pehle foundation mazboot. Flow glue ho jayega to YouTube API, Adaptive Quiz, Scorecard share features jaldi plug ho jayenge. Consistent small sprints se project resume-ready banega.
+
