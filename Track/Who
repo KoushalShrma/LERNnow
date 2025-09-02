@@ -1,0 +1,125 @@
+LEARNnow — Internal Context Map (For Assistant Memory)
+
+Purpose & Why This Matters
+- First strong, real-world level personal project for the user; must be resume-ready and demo-able.
+- Practical application of Java, Spring Boot, MySQL, SQL; learn React.js from scratch during the build.
+- Preps for placements, interviews, and freelancing; quality and clarity matter more than speed.
+
+My Role (how I must behave)
+- Project guide + mentor + buddy; explain simply, often in Hinglish, step-by-step; be encouraging.
+- Hands-off by default: advise, outline, review; user implements. Only write code when it accelerates setup/docs/tests or fixes blockers.
+- Keep everything interview-ready: clean architecture, DTOs, validation, error handling, tests, docs, deployability.
+- Remember vision and constraints across sessions; if memory is ever cleared, rehydrate from this file.
+
+Vision (product)
+- Smart Learning Web App that turns random YouTube learning into structured, goal-oriented journeys.
+- Inputs: topic, purpose (JOB_INTERVIEW | UPSKILL | EXAM), language (e.g., en, hi). Output: ordered learning path.
+- Curates YouTube videos via YouTube Data API, normalizes metadata, suggests alternatives, and leverages chapters.
+- Adaptive quizzes per subtopic; explanations on review; progress updates and a shareable scorecard.
+- AI mentor mode (summaries, doubt solving, next-step recommendation) with rule-based fallback if LLM unavailable.
+- Gamification: XP, streaks, badges, leaderboards; career goal mapping; peer discussion; productivity tracking.
+
+Non‑negotiables (quality bar)
+- Clean layering: controller → service → repository with DTOs, mappers, validation, and a global error handler.
+- Deterministic migrations (Flyway). Reproducible dev setup. Documented API (OpenAPI/Swagger).
+- Tests: at least repository, service, and controller slice tests. CI planned via GitHub Actions.
+- Observability basics: request logging + timings; later Micrometer.
+
+Architecture (backend)
+- Spring Boot 3.x, Java target ideally 21 (LTS). Current pom had 24; keep in mind migration to 21 soon.
+- Packages: config, controller, dto, mapper (MapStruct later), model, repository, service, integration (youtube), security, exception, util, validation.
+- Entities (current MVP): User, Topic, Video, Quiz, UserProgress, ScoreCard. Added enums Difficulty, ProgressStatus.
+- Relationships:
+  - Topic → Video: OneToMany (inverse, mappedBy vTopic). Video owns FK tId (ManyToOne).
+  - Topic → Quiz: OneToMany (inverse, mappedBy qTopic). Quiz owns FK tId (ManyToOne).
+  - Video ↔ Quiz: OneToOne optional; no cascade delete to avoid accidental quiz deletion.
+  - User → UserProgress: OneToMany (inverse, mappedBy uPuser). UserProgress owns FKs (uId, optional tId).
+  - ScoreCard ↔ User: OneToOne with FK uId; no CascadeType.ALL to User.
+- Timestamps exist in entities (created/updated); later add @PrePersist/@PreUpdate or Spring Data auditing.
+
+Data Model (v1 target fields)
+- User: id, name, email (unique), passwordHash, role, preferredLanguage, createdAt, updatedAt.
+- Topic: id, name, description, purpose, language, level, createdAt, updatedAt; videos/quizzes relations.
+- Video: id, youtubeId, title, channel, durationSec, language, position, chaptersJson, createdAt, updatedAt; topic, quiz.
+- Quiz: id, subtopic, difficulty (enum), language, purpose, active, createdAt, updatedAt; topic.
+- UserProgress: id, user, topic, status (enum), lastSeenAt, secondsWatched, createdAt, updatedAt.
+- ScoreCard: id, user, accuracy, consistency, discipline, dedication, streakDays, updatedAt.
+
+API Surface (planned MVP)
+- Topics: GET /api/topics?lang=&level=, POST /api/topics
+- Learning Path: POST /api/paths (topic,purpose,language), GET /api/paths/{id}, GET items
+- Videos: GET /api/topics/{id}/videos, GET /api/videos/{id}
+- Quizzes: GET /api/paths/{id}/next-quiz, POST /api/quizzes/{id}/attempts
+- Progress: PATCH /api/progress/items/{id}, GET /api/progress
+- Scorecard: GET /api/scorecard/{userId}, GET /api/scorecard/{userId}/share/{token}
+- Health: /actuator/health; Docs: /swagger-ui
+
+YouTube Data API Plan
+- Client wrapper with search/list/videos endpoints, retries, and simple rate-limiting.
+- Caffeine cache for read-heavy calls. Normalize ISO 8601 durations to seconds; language heuristic; chapters if available.
+- Fallback static curated list for core topics if API fails or quota is exhausted.
+
+Adaptive Quiz v1
+- Difficulty buckets: EASY/MEDIUM/HARD. Use last N answers (e.g., 5) to adjust difficulty: >80% correct → harder, <40% → easier.
+- Each question has explanation; show on review. Track attempt detail per quiz.
+
+Scorecard v1 (transparent formulas)
+- Accuracy = correct / total (last 50)
+- Consistency = days_with_any_activity / last_14_days
+- Discipline = completed_items / assigned_items (current path)
+- Dedication = minutes_spent (last 14 days) normalized 0–1
+- Streak = consecutive active days
+- Shareable view via signed token or pre-rendered image later.
+
+Frontend Plan (React + TS)
+- Vite + Tailwind + React Router + TanStack Query + Zustand/RTK + Axios.
+- Folders: src/app, pages, components, features, api, store, hooks, types.
+- Pages: Home, BuildPath, PathOverview, Player, Quiz, Progress, Scorecard, Leaderboard, Profile.
+- UX: optimistic progress updates, skeleton loaders, toasts, route guards.
+
+DevEx & Tooling
+- Migrations: Flyway (db/migration/V1__init.sql). Start with seed Topic + Videos.
+- Validation: jakarta validation on DTOs; fail-fast messages; custom validators for enums.
+- Errors: @ControllerAdvice -> ApiError {timestamp, path, code, message, details}.
+- Docs: springdoc-openapi-starter-webmvc-ui; document response schemas.
+- Caching: Caffeine (YouTube and read-heavy endpoints).
+- Security (later): stateless JWT; dev profile permits /api/**.
+- CI: GitHub Actions maven verify; Testcontainers (MySQL) for integration tests.
+
+Current Repo State (after Day-1 work)
+- Models: Topic, Video, User, Quiz, UserProgress, ScoreCard validated; enums Difficulty, ProgressStatus added.
+- Mappings corrected with inline comments; getters/setters present.
+- Repositories wired: JpaRepository for Topic, Video, User, UserProgress, ScoreCard, Quiz.
+- Controllers/Services exist but are stubs.
+- Docs: README.md (comprehensive), Track/DAY-1 (Hinglish summary), this file (Who) for memory.
+- GitHub: origin https://github.com/KoushalShrma/LERNnow (branch main) — push successful.
+- Environment: Windows; Maven wrapper present; application.properties minimal.
+
+Immediate Next Steps (Day-2 focus)
+- Choose dev DB (H2 fastest) → add Flyway + V1__init.sql + seed.
+- Add DTOs + validation + global exception handler.
+- Implement TopicService + TopicController (POST/GET) + Swagger UI.
+- Minimal tests: @DataJpaTest (TopicRepo), @WebMvcTest (TopicController).
+
+Style & Naming Conventions
+- Entities: camelCase fields; enums persisted as STRING; plural collection names.
+- DTOs separate from entities; MapStruct later.
+- Keep controllers thin; services handle rules; repositories are simple.
+- Avoid CascadeType.ALL to critical aggregates that can delete users/quiz unintentionally.
+
+Risk & Fallbacks
+- YouTube quotas: cache + curated static lists.
+- API instability: retry + circuit-breaker (Resilience4j later).
+- DB drift: Flyway mandatory; never rely on JPA auto-ddl in prod.
+
+Definition of Done (per slice)
+- Endpoint documented (OpenAPI), validated (400s meaningful), errors structured, tests present, and demo-able in Swagger.
+
+Motivation Reminders (for the user)
+- “Foundation pehle, feature baad mein.” Small wins daily. Hands-on learning > rushing.
+- End goal: a project you can proudly show in interviews and use as a freelancing portfolio anchor.
+
+If Memory Is Cleared
+- Reconstruct context from: Track/Who (this file), Track/DAY-1, README.md, pom.xml dependencies, package structure.
+- Resume roadmap at the earliest incomplete milestone listed above.
+
