@@ -101,6 +101,18 @@ Immediate Next Steps (Day-2 focus)
 - Implement TopicService + TopicController (POST/GET) + Swagger UI.
 - Minimal tests: @DataJpaTest (TopicRepo), @WebMvcTest (TopicController).
 
+---
+Day-2 Updates (delta over baseline)
+- Security: HTTP Basic enabled; /api/** requires auth; CSRF disabled for API testing; others permitAll.
+- Users API: @RestController on /api/users
+  - POST /api/users/add (create), GET /api/users (list), GET /api/users/{id} (404 if not found)
+- Service: getUser uses findById → Optional<User> (no lazy proxy surprises), getUsers uses findAll.
+- Repository: removed invalid custom signature (User findAll(List<User>…)); only JpaRepository<User,Long> remains.
+- Build: pom.xml slimmed for Postman (kept web/jpa/security/mysql/devtools/lombok/test; commented actuator, validation, swagger, h2, web-services, security-test).
+- Config: application-dev.yml pins dev Basic Auth creds (spring.security.user.name=user, password=<fixed>), MySQL dev URL + ddl-auto=update.
+- Known: spring-boot:repackage plugin error → use spring-boot:run for now; revisit plugin later.
+- Next: Flyway V1__init.sql (Topic/Video), DTO + validation, global exception handler, TopicController + Swagger.
+
 Style & Naming Conventions
 - Entities: camelCase fields; enums persisted as STRING; plural collection names.
 - DTOs separate from entities; MapStruct later.
@@ -122,4 +134,3 @@ Motivation Reminders (for the user)
 If Memory Is Cleared
 - Reconstruct context from: Track/Who (this file), Track/DAY-1, README.md, pom.xml dependencies, package structure.
 - Resume roadmap at the earliest incomplete milestone listed above.
-

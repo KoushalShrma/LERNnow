@@ -1,0 +1,47 @@
+LEARNnow — DAY-2 Progress (Hinglish)
+
+Aaj ke kaam (practical + realistic):
+
+1) SecurityConfig fix kiya (Postman friendly)
+- HTTP Basic enable: /api/** ke liye auth required, baaki sab permitAll.
+- CSRF disabled (dev/testing ke liye easy POST/PUT).
+- Tip: application-dev.yml me fixed creds rakhna better hota hai (user/password) taaki console-wali random password dependency na rahe.
+
+2) User flow cleanup (controller + service)
+- UserController: @RestController + base path /api/users.
+- Endpoints:
+  - POST /api/users/add → user create
+  - GET /api/users → list users
+  - GET /api/users/{id} → single user (404 if not found)
+- UserService: getUser() now uses findById + Optional (lazy proxy issue avoid), getUsers() uses findAll().
+
+3) Repository bug fix
+- UserRepo se galat custom method hata diya (User findAll(List<User> ...)).
+- Ab sirf JpaRepository<User, Long> se sab CRUD ready.
+
+4) pom.xml slim kiya (Postman testing ke liye minimal deps)
+- Rakha: web, data-jpa, security, mysql-connector, devtools, lombok, test.
+- Commented: actuator, web-services, validation, Swagger/OpenAPI, H2, security-test.
+- Note: Actuator/Swagger ko later enable karenge jab endpoints stable ho jayenge.
+
+5) Config
+- application.yml: active profile dev.
+- application-dev.yml: MySQL dev URL + creds set; JPA ddl-auto=update (abhi ke liye).
+
+6) Postman testing
+- Auth: Basic Auth (username=user, password=<dev password>).
+- Paths sahi use karo:
+  - POST http://localhost:8080/api/users/add
+  - GET http://localhost:8080/api/users
+  - GET http://localhost:8080/api/users/{id}
+- Pehle /add hit kiya to 404 aaya (static resource add) — path incorrect tha. Ab /api/users/add use karo.
+
+Known items (parked for kal)
+- spring-boot:repackage se maven plugin error aaya; abhi spring-boot:run use karo; plugin fix kal address karenge.
+- DTOs + jakarta validation + global exception handler.
+- Flyway V1__init.sql (Topic/Video) + MySQL dev migrations.
+- TopicController: POST/GET + Swagger (phir actuator health).
+
+Short motivation
+- Small wins daily. Ab POST/GET users clean ho gaye; kal se Topic + Flyway glue karte hain. Yeh flow interview-ready direction me ja raha hai.
+

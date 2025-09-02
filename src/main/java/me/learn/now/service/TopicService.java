@@ -1,5 +1,11 @@
 package me.learn.now.service;
 
-public class TopicService {
+import me.learn.now.repository.TopicRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
+public class TopicService {
+    @Autowired
+    private TopicRepo tr;
 }
