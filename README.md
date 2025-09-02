@@ -66,7 +66,7 @@ src/main/resources
   ├─ application-dev.yml (MySQL dev)
   └─ application-prod.yml
 Track/
-  ├─ DAY-1
+  ├����� DAY-1
   ├─ DAY-2
   └─ Who
 ```
@@ -82,3 +82,67 @@ Track/
 ## Track Logs
 - Day-1: foundation summary in Hinglish → `Track/DAY-1`
 - Day-2: Postman-ready auth + Users API cleanup → `Track/DAY-2`
+
+## Features
+- Personalized learning paths by topic, purpose, and language
+- YouTube curation with ordering, chapters, and alternatives
+- Adaptive quizzes with explanations and difficulty progression
+- Progress tracking and shareable scorecards
+- Gamification: XP, streaks, badges, leaderboards (planned)
+- AI mentor: summaries, doubt-solving, next-step guidance (planned)
+
+## Architecture
+```mermaid
+flowchart LR
+  subgraph Client
+    A[React Frontend (planned)]
+  end
+
+  subgraph Backend[Spring Boot]
+    B1[Controller Layer]\nREST APIs
+    B2[Service Layer]\nBusiness Rules
+    B3[Repository Layer]\nSpring Data JPA
+  end
+
+  subgraph DB[MySQL]
+    C1[(topic)]
+    C2[(video)]
+    C3[(user)]
+    C4[(quiz)]
+    C5[(user_progress)]
+    C6[(scorecard)]
+  end
+
+  A <--> B1
+  B1 --> B2 --> B3 --> DB
+
+  subgraph External
+    YT[YouTube Data API]\n(later)
+    LLM[AI Mentor API]\n(later)
+  end
+
+  B2 -. fetch/normalize .-> YT
+  B2 -. summaries/next step .-> LLM
+```
+
+## Quickstart (Backend)
+1) Prereqs
+   - JDK 21+, Maven, MySQL running (dev DB configured in `application-dev.yml`)
+2) Run in dev profile
+```bash
+./mvnw -Dspring-boot.run.profiles=dev spring-boot:run
+```
+3) Test (Basic Auth required for /api/**)
+- Username: `user`
+- Password: `<see application-dev.yml or console>`
+- Endpoints:
+  - POST http://localhost:8080/api/users/add
+  - GET  http://localhost:8080/api/users
+  - GET  http://localhost:8080/api/users/{id}
+
+## API Preview (MVP slice)
+- Users
+  - POST /api/users/add → create user
+  - GET  /api/users → list users
+  - GET  /api/users/{id} → get user (404 if not found)
+- More endpoints (Topics/Paths/Quizzes/Progress/Scorecard) coming as we wire Flyway + DTO + validation + Swagger.
