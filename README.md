@@ -62,7 +62,7 @@ Track/
 
 ## Roadmap
 - Day 1: Entities + mappings + repos (DONE)
-- Day 2: H2/Flyway + Topic CRUD + Swagger
+- Day 2: MySQL/Flyway + Topic CRUD + Swagger
 - Day 3: Learning Path MVP + seed data
 - Day 4: Adaptive quiz v1 + scoring
 - Day 5: Scorecard + shareable summary
