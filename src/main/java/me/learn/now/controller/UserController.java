@@ -16,10 +16,6 @@ public class UserController {
     @Autowired
     private UserService us;
 
-    @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody User user){
-        return ResponseEntity.ok(us.addUser(user));
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id){
