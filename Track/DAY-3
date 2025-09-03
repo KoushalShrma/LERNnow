@@ -1,0 +1,44 @@
+DAY-3 (2025-09-03)
+
+Aaj ka kaam (Hinglish Recap)
+
+1) Security (Dev tweaks)
+- CSRF disable kiya for quick API testing.
+- HTTP Basic enable rakha hai, but dev me /api/** ko permitAll kiya taaki Postman se bina barrier test ho sake. Later stricter rules add karenge.
+
+2) User API clean-up (REST style)
+- Endpoints simplify/standardize kiye:
+  - POST   /api/users            → add user
+  - GET    /api/users            → list users
+  - GET    /api/users/{id}       → get user by id (404 on not found)
+  - DELETE /api/users/{id}       → delete user (returns deleted or 404)
+  - PUT    /api/users/{id}       → update user (name/email)
+  - PUT    /api/users/pass/{id}  → update password (body: { "uPass": "<new>" })
+- Controller responses ko ResponseEntity ke through proper 200/404 handling diya.
+
+3) Service layer enhancements
+- updateUser(id, user): name/email update with not-found check.
+- updatePassword(id, newPass): same-as-old password block kiya; varna save. (TODO: hashing integrate karna hai)
+
+4) Repository fix
+- UserRepo ab JpaRepository<User, Long> extend karta hai → CRUD built-in mil gaye.
+
+5) Notes / Next steps
+- Password hashing: BCryptPasswordEncoder present hai config me; UserService me setuPass ke time encode karna add karenge + verify on login.
+- Security rules: prod me /api/** pe auth required karenge; abhi dev speed ke liye open.
+- Basic validation/DTOs add karne hain (null checks, email format, etc.).
+
+Quick manual test (Postman/curl)
+- Create:   POST http://localhost:8080/api/users  (JSON body with uName/uEmail/uPass)
+- List:     GET  http://localhost:8080/api/users
+- Get by id:GET  http://localhost:8080/api/users/1
+- Update:   PUT  http://localhost:8080/api/users/1 (JSON with uName/uEmail)
+- Change pw: PUT  http://localhost:8080/api/users/pass/1  body: { "uPass": "newSecret" }
+- Delete:   DELETE http://localhost:8080/api/users/1
+
+Files touched today
+- src/main/java/me/learn/now/config/SecurityConfig.java
+- src/main/java/me/learn/now/controller/UserController.java
+- src/main/java/me/learn/now/repository/UserRepo.java
+- src/main/java/me/learn/now/service/UserService.java
+
