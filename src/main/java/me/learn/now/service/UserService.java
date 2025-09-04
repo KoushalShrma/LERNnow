@@ -3,6 +3,7 @@ package me.learn.now.service;
 import me.learn.now.model.User;
 import me.learn.now.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +15,15 @@ public class UserService {
     @Autowired
     private UserRepo ur;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Hinglish: yahi se password ko hash karenge
+
+    // Create user
     public User addUser(User user) {
+        // Hinglish: plain text password kabhi store nahi karni, yaha hash kar diya
+        if (user.getuPass() != null && !user.getuPass().isBlank()) {
+            user.setuPass(passwordEncoder.encode(user.getuPass()));
+        }
         return ur.save(user);
     }
 
@@ -32,6 +41,7 @@ public class UserService {
         return u;
     }
 
+    // Update basic fields (name/email)
     public User updateUser(Long id, User user){
         User existingUser = ur.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         existingUser.setuName(user.getuName());
@@ -39,17 +49,18 @@ public class UserService {
         return ur.save(existingUser);
     }
 
+    // Change password safely
     public User updatePassword(Long id, String newPassword) {
-        Optional<User> existingUser = ur.findById(id);
-        if(existingUser.isPresent()) {
-            User user = existingUser.get();
-            if(user.getuPass().equals(newPassword)){
-                throw new RuntimeException("New password cannot be the same as the old password");
-            }
-            user.setuPass(newPassword);
-            return ur.save(user);
-        } else {
-            throw new RuntimeException("User not found");
+        if (newPassword == null || newPassword.isBlank())
+            throw new IllegalArgumentException("Password cannot be empty");
+
+        User user = ur.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        // Hinglish: agar naya password same hai purane se (match ho gaya) toh error
+        if (passwordEncoder.matches(newPassword, user.getuPass())) {
+            throw new RuntimeException("New password cannot be the same as the old password");
         }
+        // Hinglish: hash karke store karo
+        user.setuPass(passwordEncoder.encode(newPassword));
+        return ur.save(user);
     }
 }

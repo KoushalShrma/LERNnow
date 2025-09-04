@@ -21,6 +21,21 @@
 ## TL;DR
 LEARNnow turns random tutorials into a personalized path with curated YouTube videos, adaptive quizzes, progress scorecards, and light gamification.
 
+## Demo (Dev)
+- Start backend (MySQL running; dev profile uses `application-dev.yml`):
+  - Windows PowerShell:
+    - `./mvnw -Dspring-boot.run.profiles=dev spring-boot:run`
+- Open Swagger UI (auto docs): http://localhost:8080/swagger-ui/index.html
+- Try these quickly:
+  - POST /api/users (create user)
+  - GET  /api/topics
+  - GET  /api/topics/{id}/videos
+  - PATCH /api/topics/{id}/videos/reorder
+  - GET  /api/users/{userId}/progress
+  - PUT  /api/users/{userId}/progress/by-topic/{topicId}/status?value=IN_PROGRESS
+
+Note: Dev security is relaxed for speed (API + Swagger are open). Passwords are hashed with BCrypt.
+
 ## Why
 - Turn “random tutorials” into a goal‑oriented path.
 - Practice real-world stack: Spring Boot + MySQL + React (to be added).
@@ -37,16 +52,16 @@ LEARNnow turns random tutorials into a personalized path with curated YouTube vi
 ## Tech Stack
 - Backend: Java 21, Spring Boot 3, Spring Data JPA
 - Database: MySQL (dev/prod)
-- Dev/Tooling: Maven Wrapper, Lombok
-- Planned: Flyway (migrations), OpenAPI/Swagger, React + TypeScript frontend
+- Dev/Tooling: Maven Wrapper, Lombok, Swagger UI (springdoc)
+- Planned: Flyway (migrations), OpenAPI polish, React + TypeScript frontend
 
 ---
 
 ## Contents
 - Features (coming up)
 - Architecture (coming up)
-- Quickstart (coming up)
-- API Preview (coming up)
+- Quickstart (updated)
+- API Preview (updated)
 - Project Structure
 - Roadmap
 - Track Logs
@@ -55,74 +70,14 @@ LEARNnow turns random tutorials into a personalized path with curated YouTube vi
 ```
 src/main/java/me/learn/now
   ├─ config/           # SecurityConfig, etc.
-  ├─ controller/       # REST controllers (Users ready; others scaffolded)
-  ├─ dto/              # Request/response DTOs (scaffolded)
+  ├─ controller/       # REST controllers (Users, Topics, Videos, Quizzes, Progress, ScoreCard)
+  ├─ dto/              # (reserved for later)
+  ├─ exception/        # ApiError + GlobalExceptionHandler (clean 400/404 messages)
+  ├─ integration/      # youtube/ → YoutubeClient (stub; plug real API later)
   ├─ model/            # JPA entities + enums
   ├─ repository/       # Spring Data repositories
   ├─ service/          # Business services
   └─ LearNnowApplication.java
-src/main/resources
-  ├─ application.yml (activates dev)
-  ├─ application-dev.yml (MySQL dev)
-  └─ application-prod.yml
-Track/
-  ├����� DAY-1
-  ├─ DAY-2
-  └─ Who
-```
-
-## Roadmap
-- [x] Day 1: Entities + mappings + repos
-- [x] Day 2: Users API + Basic auth (dev) + Postman-ready
-- [ ] Day 3: Flyway V1 (Topic/Video) + Topic CRUD + Swagger
-- [ ] Day 4: Learning Path MVP + seed data
-- [ ] Day 5: Adaptive quiz v1 + scoring
-- [ ] Day 6+: Scorecard share, gamification, AI mentor, frontend flows
-
-## Track Logs
-- Day-1: foundation summary in Hinglish → `Track/DAY-1`
-- Day-2: Postman-ready auth + Users API cleanup → `Track/DAY-2`
-
-## Features
-- Personalized learning paths by topic, purpose, and language
-- YouTube curation with ordering, chapters, and alternatives
-- Adaptive quizzes with explanations and difficulty progression
-- Progress tracking and shareable scorecards
-- Gamification: XP, streaks, badges, leaderboards (planned)
-- AI mentor: summaries, doubt-solving, next-step guidance (planned)
-
-## Architecture
-```mermaid
-flowchart LR
-  subgraph Client
-    A[React Frontend (planned)]
-  end
-
-  subgraph Backend[Spring Boot]
-    B1[Controller Layer]\nREST APIs
-    B2[Service Layer]\nBusiness Rules
-    B3[Repository Layer]\nSpring Data JPA
-  end
-
-  subgraph DB[MySQL]
-    C1[(topic)]
-    C2[(video)]
-    C3[(user)]
-    C4[(quiz)]
-    C5[(user_progress)]
-    C6[(scorecard)]
-  end
-
-  A <--> B1
-  B1 --> B2 --> B3 --> DB
-
-  subgraph External
-    YT[YouTube Data API]\n(later)
-    LLM[AI Mentor API]\n(later)
-  end
-
-  B2 -. fetch/normalize .-> YT
-  B2 -. summaries/next step .-> LLM
 ```
 
 ## Quickstart (Backend)
@@ -132,17 +87,45 @@ flowchart LR
 ```bash
 ./mvnw -Dspring-boot.run.profiles=dev spring-boot:run
 ```
-3) Test (Basic Auth required for /api/**)
-- Username: `user`
-- Password: `<see application-dev.yml or console>`
-- Endpoints:
-  - POST http://localhost:8080/api/users/add
-  - GET  http://localhost:8080/api/users
-  - GET  http://localhost:8080/api/users/{id}
+3) Docs + Try it
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- JSON in/out; dev security is open for speed.
 
 ## API Preview (MVP slice)
 - Users
-  - POST /api/users/add → create user
+  - POST /api/users → create user (password stored as BCrypt hash)
   - GET  /api/users → list users
   - GET  /api/users/{id} → get user (404 if not found)
-- More endpoints (Topics/Paths/Quizzes/Progress/Scorecard) coming as we wire Flyway + DTO + validation + Swagger.
+  - PUT  /api/users/{id} → update name/email
+  - PUT  /api/users/pass/{id} → update password (disallows old password)
+- Topics
+  - CRUD on /api/topics
+  - GET  /api/topics/{id}/videos (ordered by vPosition)
+  - GET  /api/topics/{id}/quizzes
+  - PATCH /api/topics/{id}/videos/reorder (body: [videoId...])
+- Videos
+  - CRUD on /api/videos
+- Quizzes
+  - CRUD on /api/quizzes
+  - PATCH /api/quizzes/{id}/active?active=true|false
+- Progress
+  - Base: /api/users/{userId}/progress (list/create/get/patch/delete)
+  - Helpers: by-topic get + set status/watch seconds
+- Scorecard
+  - GET /api/users/{userId}/scorecard, plus basic CRUD under /api/scorecards
+
+## YouTube Plan
+- `integration/youtube/YoutubeClient` is a stub right now (Hinglish comments inside).
+- When API key ready: implement search/list/details, normalize durations, language, and chapters.
+
+## Roadmap
+- [x] Day 1: Entities + mappings + repos
+- [x] Day 2-3: Users API + Topic/Videos + basic Quizzes/Progress/ScoreCard
+- [x] Swagger UI + Global error handler (ApiError)
+- [ ] Flyway V1 (Topic/Video) + seed data
+- [ ] DTOs + validation + better errors per field
+- [ ] Frontend (React + TS) pages + simple path builder
+- [ ] Caching + rate-limit for YouTube integration
+
+## Track Logs
+- See `Track/` folder for day-wise Hinglish recaps
