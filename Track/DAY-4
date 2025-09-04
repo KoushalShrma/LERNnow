@@ -1,0 +1,54 @@
+DAY-4
+
+Aaj ka kaam (Field Naming & Entity Cleanup)
+
+1) Entity Field Naming Standardization
+- User entity me sab fields ko camelCase me convert kiya:
+  - uId → id (with @Column(name = "uId") for DB compatibility)
+  - uName → name (with @Column(name = "uName"))
+  - uEmail → email (with @Column(name = "uEmail"))
+  - uPass → password (with @Column(name = "uPass"))
+  - uPreferredLanguage → preferredLanguage
+  - uCreateAt → createAt, uUpdateAt → updateAt
+- Getters/setters bhi update kiye accordingly.
+
+2) Quiz Entity Field Cleanup
+- Quiz entity me bhi same approach:
+  - qId → id (with @Column(name = "qId"))
+  - qSubTopic → subTopic, qDifficulty → difficulty
+  - qLanguage → language, qPurpose → purpose
+  - qIsActive → isActive (boolean)
+  - qCreateAt → createAt, qUpdateAt → updateAt
+  - qQuestionsJson → questionsJson
+
+3) Repository Method Name Fixes
+- UserRepo me methods update kiye:
+  - findByuEmail() → findByEmail()
+  - existsByuEmail() → existsByEmail()
+  - existsByuName() → existsByName()
+- QuizRepo me bhi similar naming conventions apply kiye.
+
+4) Controller Updates
+- AuthController me sab references update kiye new field names ke according.
+- UserController me getter/setter calls fix kiye.
+
+5) Database Compatibility
+- @Column annotations add kiye to keep database schema unchanged.
+- Spring JPA ab properly map karega Java camelCase fields to DB snake_case columns.
+
+Testing Status
+- Project compiles successfully with BUILD SUCCESS.
+- All previous functionality intact with cleaner code.
+
+Next Steps (DAY-5)
+- Video entity aur remaining controllers ko fix karna hai.
+- Password hashing properly implement karna hai.
+- JWT authentication setup start karenge.
+
+Files touched today:
+- src/main/java/me/learn/now/model/User.java
+- src/main/java/me/learn/now/model/Quiz.java
+- src/main/java/me/learn/now/repository/UserRepo.java
+- src/main/java/me/learn/now/repository/QuizRepo.java
+- src/main/java/me/learn/now/controller/AuthController.java
+- src/main/java/me/learn/now/service/UserDetailsServiceImpl.java

@@ -1,0 +1,54 @@
+DAY-9
+
+Aaj ka kaam (ScoreCard System & Performance Metrics)
+
+1) ScoreCard Controller & Service
+- ScoreCardController banaya with comprehensive analytics:
+  - POST /api/scorecards → create new scorecard
+  - GET /api/users/{userId}/scorecard → get user's scorecard
+  - PUT /api/scorecards/{id} → update scorecard metrics
+  - POST /api/users/{userId}/scorecard/generate → auto-generate scorecard
+
+2) Performance Metrics Calculation
+- ScoreCardService me advanced analytics:
+  - Accuracy calculation based on quiz performance
+  - Consistency tracking across learning sessions
+  - Discipline score based on regular learning habits
+  - Dedication metrics from time spent learning
+  - Streak calculation for motivation
+
+3) Auto ScoreCard Generation
+- generateOrUpdateScoreCard() method:
+  - User ke quiz results se accuracy calculate karta hai
+  - Progress data se consistency metrics nikalta hai
+  - Daily learning patterns se discipline score banata hai
+  - Total learning time se dedication calculate karta hai
+
+4) Performance Summary API
+- GET /api/users/{userId}/performance-summary endpoint:
+  - Human-readable performance summary
+  - Improvement suggestions
+  - Streak achievements aur motivational messages
+
+5) ScoreCard Analytics Dashboard Data
+- Comprehensive metrics for frontend dashboard:
+  - Learning velocity trends
+  - Topic-wise performance breakdown
+  - Weekly/monthly progress graphs data
+  - Comparative analysis with peer learners
+
+Testing Done
+- ScoreCard generation working with real user data.
+- Performance metrics accurately calculated.
+- Summary reports generating properly.
+
+Next Steps (DAY-10)
+- Learning Path system implement karna hai.
+- Structured learning journeys create karna hai.
+- Path recommendation engine add karna hai.
+
+Files touched today:
+- src/main/java/me/learn/now/controller/ScoreCardController.java
+- src/main/java/me/learn/now/service/ScoreCardService.java
+- src/main/java/me/learn/now/model/ScoreCard.java
+- src/main/java/me/learn/now/repository/ScoreCardRepo.java

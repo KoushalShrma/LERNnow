@@ -32,15 +32,15 @@ public class VideoService {
     public Video update(Long id, Video input){
         Video v = vr.findById(id).orElseThrow(() -> new RuntimeException("Video not found"));
         // jo fields zaroori lagti hain woh update kar rahe
-        v.setvTitle(input.getvTitle());
-        v.setvChannel(input.getvChannel());
-        v.setvYoutubeId(input.getvYoutubeId());
-        v.setvDuration(input.getvDuration());
-        v.setvLanguage(input.getvLanguage());
-        v.setvPosition(input.getvPosition());
-        v.setvChaptersJson(input.getvChaptersJson());
-        v.setvTopic(input.getvTopic());
-        v.setvQuiz(input.getvQuiz());
+        v.setTitle(input.getTitle());
+        v.setChannel(input.getChannel());
+        v.setYoutubeId(input.getYoutubeId());
+        v.setDuration(input.getDuration());
+        v.setLanguage(input.getLanguage());
+        v.setPosition(input.getPosition());
+        v.setChaptersJson(input.getChaptersJson());
+        v.setTopic(input.getTopic());
+        v.setQuiz(input.getQuiz());
         return vr.save(v);
     }
 

@@ -1,5 +1,6 @@
 package me.learn.now.repository;
 
+import me.learn.now.model.ProgressStatus;
 import me.learn.now.model.UserProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,8 +11,11 @@ import java.util.Optional;
 // extends JpaRepository<UserProgress, Long> → Spring Data repository with Long primary key
 public interface UserProgressRepo extends JpaRepository<UserProgress, Long> {
     // kisi user ka saara progress nikaalne ka method
-    List<UserProgress> findByUPuser_UId(Long uId);
+    List<UserProgress> findByUserIdAndStatus(Long userId, ProgressStatus status);
+
+    // user ke saare progress entries
+    List<UserProgress> findByUserId(Long userId);
 
     // specific topic par user ka progress
-    Optional<UserProgress> findByUPuser_UIdAndUPtopic_TId(Long uId, Long tId);
+    Optional<UserProgress> findByUserIdAndTopicId(Long userId, Long topicId);
 }

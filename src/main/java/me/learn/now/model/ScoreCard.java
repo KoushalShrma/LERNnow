@@ -12,84 +12,95 @@ public class ScoreCard {
     // @Id @GeneratedValue → Auto-generated primary key for ScoreCard
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long sId;
+    private Long id;
 
     // CHANGED: Remove CascadeType.ALL to avoid cascading deletes to User
     // @OneToOne → One-to-One relation (ScoreCard ↔ User). ScoreCard owns the FK column uId
     // @JoinColumn(name = "uId", referencedColumnName = "uId") → FK in ScoreCard table referencing User.uId
     @OneToOne(optional = false)
     @JoinColumn(name="uId", referencedColumnName = "uId")
-    private User sUser;
+    private User user;
 
-    private Double sAccuracy;
-    private Double sConsistency;
-    private Double sDiscipline;
-    private Double sDedication;
-    private Integer sStreakDays;
-    private LocalDateTime sUpdateAt;
+    private Double accuracy = 0.0; // Hinglish: default 0 se start karte hai
+    private Double consistency = 0.0;
+    private Double discipline = 0.0;
+    private Double dedication = 0.0;
+    private Integer streakDays = 0; // Hinglish: streak 0 se start
+    private LocalDateTime updateAt;
 
-
-    public Long getsId() {
-        return sId;
+    @PrePersist
+    protected void onCreate() {
+        // Hinglish: naya scorecard create hone pe timestamp set kar dete hai
+        updateAt = LocalDateTime.now();
     }
 
-    public void setsId(Long sId) {
-        this.sId = sId;
+    @PreUpdate
+    protected void onUpdate() {
+        // Hinglish: scorecard update hone pe timestamp change kar dete hai
+        updateAt = LocalDateTime.now();
     }
 
-    public User getsUser() {
-        return sUser;
+    public Long getId() {
+        return id;
     }
 
-    public void setsUser(User sUser) {
-        this.sUser = sUser;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Double getsAccuracy() {
-        return sAccuracy;
+    public User getUser() {
+        return user;
     }
 
-    public void setsAccuracy(Double sAccuracy) {
-        this.sAccuracy = sAccuracy;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public Double getsConsistency() {
-        return sConsistency;
+    public Double getAccuracy() {
+        return accuracy;
     }
 
-    public void setsConsistency(Double sConsistency) {
-        this.sConsistency = sConsistency;
+    public void setAccuracy(Double accuracy) {
+        this.accuracy = accuracy;
     }
 
-    public Double getsDiscipline() {
-        return sDiscipline;
+    public Double getConsistency() {
+        return consistency;
     }
 
-    public void setsDiscipline(Double sDiscipline) {
-        this.sDiscipline = sDiscipline;
+    public void setConsistency(Double consistency) {
+        this.consistency = consistency;
     }
 
-    public Double getsDedication() {
-        return sDedication;
+    public Double getDiscipline() {
+        return discipline;
     }
 
-    public void setsDedication(Double sDedication) {
-        this.sDedication = sDedication;
+    public void setDiscipline(Double discipline) {
+        this.discipline = discipline;
     }
 
-    public Integer getsStreakDays() {
-        return sStreakDays;
+    public Double getDedication() {
+        return dedication;
     }
 
-    public void setsStreakDays(Integer sStreakDays) {
-        this.sStreakDays = sStreakDays;
+    public void setDedication(Double dedication) {
+        this.dedication = dedication;
     }
 
-    public LocalDateTime getsUpdateAt() {
-        return sUpdateAt;
+    public Integer getStreakDays() {
+        return streakDays;
     }
 
-    public void setsUpdateAt(LocalDateTime sUpdateAt) {
-        this.sUpdateAt = sUpdateAt;
+    public void setStreakDays(Integer streakDays) {
+        this.streakDays = streakDays;
+    }
+
+    public LocalDateTime getUpdateAt() {
+        return updateAt;
+    }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
     }
 }

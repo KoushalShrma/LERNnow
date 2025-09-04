@@ -10,103 +10,115 @@ public class Topic {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long tId;
-	private String tName;
-	private String tDescription;
-	private String tPurpose;
-	private String tLanguage;
-	private String tLevel;
-	private LocalDateTime tCreateAt;
-	private LocalDateTime tUpdateAt;
+	private Long id;
+	private String name;
+	private String description;
+	private String purpose;
+	private String language;
+	private String level;
+	private LocalDateTime createAt;
+	private LocalDateTime updateAt;
 
 	// CHANGED: Use mappedBy instead of @JoinColumn on OneToMany; FK lives on Video table as tId
-	// @OneToMany(mappedBy = "vTopic") → One-to-Many relation (Topic → Videos) using the owning side on Video
-	@OneToMany(mappedBy = "vTopic", cascade = CascadeType.ALL, orphanRemoval = true) // mappedBy fix + cascade cleanup
-	private List<Video> tVideos = new ArrayList<>(); // initialize to avoid NPEs
+	// @OneToMany(mappedBy = "topic") → One-to-Many relation (Topic → Videos) using the owning side on Video
+	@OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true) // mappedBy fix + cascade cleanup
+	private List<Video> videos = new ArrayList<>(); // initialize to avoid NPEs
 
 	// No change to mapping name, just clarifying it's inverse side
-	// @OneToMany(mappedBy = "qTopic") → One-to-Many relation (Topic → Quizzes) inverse side; Quiz owns FK
-	@OneToMany(mappedBy = "qTopic")
-	private List<Quiz> tQuizzes = new ArrayList<>();
+	// @OneToMany(mappedBy = "topic") → One-to-Many relation (Topic → Quizzes) inverse side; Quiz owns FK
+	@OneToMany(mappedBy = "topic")
+	private List<Quiz> quizzes = new ArrayList<>();
 
-
-	public Long gettId() {
-		return tId;
+	@PrePersist
+	protected void onCreate() {
+		// Hinglish: naya topic create hone pe timestamps set kar dete hai
+		createAt = LocalDateTime.now();
+		updateAt = LocalDateTime.now();
 	}
 
-	public void settId(Long tId) {
-		this.tId = tId;
+	@PreUpdate
+	protected void onUpdate() {
+		// Hinglish: topic update hone pe sirf update timestamp change karte hai
+		updateAt = LocalDateTime.now();
 	}
 
-	public String gettName() {
-		return tName;
+	public Long getId() {
+		return id;
 	}
 
-	public void settName(String tName) {
-		this.tName = tName;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public String gettDescription() {
-		return tDescription;
+	public String getName() {
+		return name;
 	}
 
-	public void settDescription(String tDescription) {
-		this.tDescription = tDescription;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String gettPurpose() {
-		return tPurpose;
+	public String getDescription() {
+		return description;
 	}
 
-	public void settPurpose(String tPurpose) {
-		this.tPurpose = tPurpose;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
-	public String gettLanguage() {
-		return tLanguage;
+	public String getPurpose() {
+		return purpose;
 	}
 
-	public void settLanguage(String tLanguage) {
-		this.tLanguage = tLanguage;
+	public void setPurpose(String purpose) {
+		this.purpose = purpose;
 	}
 
-	public String gettLevel() {
-		return tLevel;
+	public String getLanguage() {
+		return language;
 	}
 
-	public void settLevel(String tLevel) {
-		this.tLevel = tLevel;
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 
-	public LocalDateTime gettCreateAt() {
-		return tCreateAt;
+	public String getLevel() {
+		return level;
 	}
 
-	public void settCreateAt(LocalDateTime tCreateAt) {
-		this.tCreateAt = tCreateAt;
+	public void setLevel(String level) {
+		this.level = level;
 	}
 
-	public LocalDateTime gettUpdateAt() {
-		return tUpdateAt;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void settUpdateAt(LocalDateTime tUpdateAt) {
-		this.tUpdateAt = tUpdateAt;
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
-	public List<Video> gettVideos() {
-		return tVideos;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void settVideos(List<Video> tVideos) {
-		this.tVideos = tVideos;
+	public void setUpdateAt(LocalDateTime updateAt) {
+		this.updateAt = updateAt;
 	}
 
-	public List<Quiz> gettQuizzes() {
-		return tQuizzes;
+	public List<Video> getVideos() {
+		return videos;
 	}
 
-	public void settQuizzes(List<Quiz> tQuizzes) {
-		this.tQuizzes = tQuizzes;
+	public void setVideos(List<Video> videos) {
+		this.videos = videos;
+	}
+
+	public List<Quiz> getQuizzes() {
+		return quizzes;
+	}
+
+	public void setQuizzes(List<Quiz> quizzes) {
+		this.quizzes = quizzes;
 	}
 }

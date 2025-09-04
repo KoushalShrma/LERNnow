@@ -1,0 +1,51 @@
+DAY-5
+
+Aaj ka kaam (JWT Authentication & Security Enhancement)
+
+1) JWT Service Implementation
+- JwtService.java banaya with proper token generation aur validation.
+- Secret key configuration add kiya application-dev.yml me.
+- Token expiration 24 hours set kiya (86400000 ms).
+
+2) JWT Authentication Filter
+- JwtAuthenticationFilter.java create kiya.
+- Header se "Authorization: Bearer <token>" extract karta hai.
+- Valid token pe user details set karta hai SecurityContext me.
+
+3) Password Hashing Integration
+- UserService me BCryptPasswordEncoder properly integrate kiya.
+- addUser() method me password hash kar ke store karta hai.
+- updatePassword() method me old password check aur new password hash.
+
+4) Authentication Controller Enhancement
+- AuthController me login endpoint add kiya.
+- Successful login pe JWT token return karta hai.
+- Register endpoint ko enhance kiya with proper validation.
+
+5) Security Configuration Update
+- SecurityConfig me JWT filter chain add kiya.
+- Session management STATELESS kar diya.
+- Public endpoints define kiye: /api/auth/**, /api/public/**
+
+6) UserDetailsService Implementation
+- Spring Security ke liye UserDetailsServiceImpl banaya.
+- Database se user load kar ke UserDetails object return karta hai.
+
+Testing Done
+- Registration working with password hashing.
+- Login successful with JWT token generation.
+- Protected endpoints require valid JWT token.
+
+Next Steps (DAY-6)
+- Topic aur Video controllers ko complete karna hai.
+- Database migrations properly setup karna hai.
+- Error handling improve karna hai.
+
+Files touched today:
+- src/main/java/me/learn/now/service/JwtService.java
+- src/main/java/me/learn/now/config/JwtAuthenticationFilter.java
+- src/main/java/me/learn/now/config/SecurityConfig.java
+- src/main/java/me/learn/now/controller/AuthController.java
+- src/main/java/me/learn/now/service/UserService.java
+- src/main/java/me/learn/now/service/UserDetailsServiceImpl.java
+- src/main/resources/application-dev.yml

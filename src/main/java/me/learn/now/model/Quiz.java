@@ -2,7 +2,6 @@ package me.learn.now.model;
 
 import jakarta.persistence.*;
 
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,96 +9,134 @@ public class Quiz {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long qId;
-	private String qSubTopic;
+	@Column(name = "qId")
+	private Long id;
+
+	@Column(name = "qSubTopic")
+	private String subTopic;
 
 	// CHANGED: Use a strong enum type with @Enumerated for safety and readability
 	// @Enumerated(EnumType.STRING) → Persist enum by name (EASY/MEDIUM/HARD) instead of ordinal
 	@Enumerated(EnumType.STRING)
-	private Difficulty qDifficulty;
+	@Column(name = "qDifficulty")
+	private Difficulty difficulty;
 
-	private String qLanguage;
-	private String qPurpose;
-	private boolean qIsActive;
-	private LocalDateTime qCreateAt;
-	private LocalDateTime qUpdateAt;
+	@Column(name = "qLanguage")
+	private String language;
+
+	@Column(name = "qPurpose")
+	private String purpose;
+
+	@Column(name = "qIsActive")
+	private boolean isActive;
+
+	@Column(name = "qCreateAt")
+	private LocalDateTime createAt;
+
+	@Column(name = "qUpdateAt")
+	private LocalDateTime updateAt;
 
 	// No change: Quiz belongs to a Topic via FK tId on the owning side
 	// @ManyToOne @JoinColumn(name = "tId") → Many-to-One relation (Quiz → Topic) using foreign key column tId
 	@ManyToOne
 	@JoinColumn(name = "tId")
-	private Topic qTopic;
+	private Topic topic;
 
+	// Hinglish: Quiz ke questions JSON format me store kar rahe hai for simplicity
+	@Column(name = "qQuestionsJson", columnDefinition = "TEXT")
+	private String questionsJson;
 
-	public Long getqId() {
-		return qId;
+	@PrePersist
+	protected void onCreate() {
+		// Hinglish: jab bhi naya quiz create ho, timestamp set kar dete hai
+		createAt = LocalDateTime.now();
+		updateAt = LocalDateTime.now();
 	}
 
-	public void setqId(Long qId) {
-		this.qId = qId;
+	@PreUpdate
+	protected void onUpdate() {
+		// Hinglish: har update pe timestamp refresh kar dete hai
+		updateAt = LocalDateTime.now();
 	}
 
-	public String getqSubTopic() {
-		return qSubTopic;
+	// Getters and Setters
+	public Long getId() {
+		return id;
 	}
 
-	public void setqSubTopic(String qSubTopic) {
-		this.qSubTopic = qSubTopic;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public Difficulty getqDifficulty() {
-		return qDifficulty;
+	public String getSubTopic() {
+		return subTopic;
 	}
 
-	public void setqDifficulty(Difficulty qDifficulty) {
-		this.qDifficulty = qDifficulty;
+	public void setSubTopic(String subTopic) {
+		this.subTopic = subTopic;
 	}
 
-	public String getqLanguage() {
-		return qLanguage;
+	public Difficulty getDifficulty() {
+		return difficulty;
 	}
 
-	public void setqLanguage(String qLanguage) {
-		this.qLanguage = qLanguage;
+	public void setDifficulty(Difficulty difficulty) {
+		this.difficulty = difficulty;
 	}
 
-	public String getqPurpose() {
-		return qPurpose;
+	public String getLanguage() {
+		return language;
 	}
 
-	public void setqPurpose(String qPurpose) {
-		this.qPurpose = qPurpose;
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 
-	public boolean isqIsActive() {
-		return qIsActive;
+	public String getPurpose() {
+		return purpose;
 	}
 
-	public void setqIsActive(boolean qIsActive) {
-		this.qIsActive = qIsActive;
+	public void setPurpose(String purpose) {
+		this.purpose = purpose;
 	}
 
-	public LocalDateTime getqCreateAt() {
-		return qCreateAt;
+	public boolean isActive() {
+		return isActive;
 	}
 
-	public void setqCreateAt(LocalDateTime qCreateAt) {
-		this.qCreateAt = qCreateAt;
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
 	}
 
-	public LocalDateTime getqUpdateAt() {
-		return qUpdateAt;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void setqUpdateAt(LocalDateTime qUpdateAt) {
-		this.qUpdateAt = qUpdateAt;
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
-	public Topic getqTopic() {
-		return qTopic;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void setqTopic(Topic qTopic) {
-		this.qTopic = qTopic;
+	public void setUpdateAt(LocalDateTime updateAt) {
+		this.updateAt = updateAt;
+	}
+
+	public Topic getTopic() {
+		return topic;
+	}
+
+	public void setTopic(Topic topic) {
+		this.topic = topic;
+	}
+
+	public String getQuestionsJson() {
+		return questionsJson;
+	}
+
+	public void setQuestionsJson(String questionsJson) {
+		this.questionsJson = questionsJson;
 	}
 }

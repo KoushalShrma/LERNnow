@@ -54,4 +54,18 @@ public class ScoreCardController {
         Optional<ScoreCard> sc = scs.delete(id);
         return sc.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    // Hinglish: user ke liye scorecard generate ya refresh karne ke liye
+    @PostMapping("/users/{userId}/scorecard/generate")
+    public ResponseEntity<ScoreCard> generateScoreCard(@PathVariable Long userId){
+        ScoreCard scoreCard = scs.generateOrUpdateScoreCard(userId);
+        return ResponseEntity.ok(scoreCard);
+    }
+
+    // Hinglish: user ka performance summary get karne ke liye
+    @GetMapping("/users/{userId}/performance-summary")
+    public ResponseEntity<String> getPerformanceSummary(@PathVariable Long userId){
+        String summary = scs.getPerformanceSummary(userId);
+        return ResponseEntity.ok(summary);
+    }
 }

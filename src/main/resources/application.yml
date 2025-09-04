@@ -1,3 +1,9 @@
 spring:
   profiles:
     active: dev
+
+# YouTube API configuration
+youtube:
+  api:
+    key: AIzaSyA5DX1ZA5hhtjp2dfueCVnHkMH7hqSfLX8
+    application-name: LEARNnow-YouTube-Integration

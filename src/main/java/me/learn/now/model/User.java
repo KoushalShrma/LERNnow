@@ -11,66 +11,86 @@ public class User {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long uId;
+	@Column(name = "uId")
+	private Long id;
 
-	@Column(unique = true, nullable = false)
-	private String uName;
+	@Column(name = "uName", unique = true, nullable = false)
+	private String name;
 
-	@Column(unique = true, nullable = false)
-	private String uEmail;
+	@Column(name = "uEmail", unique = true, nullable = false)
+	private String email;
 
-	@Column(nullable = false)
-	private String uPass;
+	@Column(name = "uPass", nullable = false)
+	private String password;
 
 	// CHANGED: Fix mapping - use collection and correct mappedBy value
-	// @OneToMany(mappedBy = "uPuser") → One-to-Many relation (User → UserProgress) inverse side; FK owned by UserProgress.uPuser
-	@OneToMany(mappedBy = "uPuser", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<UserProgress> uUprogress = new ArrayList<>();
+	// @OneToMany(mappedBy = "user") → One-to-Many relation (User → UserProgress) inverse side; FK owned by UserProgress.user
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<UserProgress> userProgress = new ArrayList<>();
 
-	private String role;
-	private String uPreferredLanguage;
-	private LocalDateTime uCreateAt;
-	private LocalDateTime uUpdateAt;
+	private String role = "USER"; // Hinglish: default role set kar diya
 
+	@Column(name = "uPreferredLanguage")
+	private String preferredLanguage = "en"; // Hinglish: default language English
 
-	public Long getuId() {
-		return uId;
+	@Column(name = "uCreateAt")
+	private LocalDateTime createAt;
+
+	@Column(name = "uUpdateAt")
+	private LocalDateTime updateAt;
+
+	@PrePersist
+	protected void onCreate() {
+		// Hinglish: naya user register hone pe timestamps set kar dete hai
+		createAt = LocalDateTime.now();
+		updateAt = LocalDateTime.now();
 	}
 
-	public void setuId(Long uId) {
-		this.uId = uId;
+	@PreUpdate
+	protected void onUpdate() {
+		// Hinglish: user update hone pe sirf update timestamp change karte hai
+		updateAt = LocalDateTime.now();
 	}
 
-	public String getuName() {
-		return uName;
+	// Getters and Setters
+	public Long getId() {
+		return id;
 	}
 
-	public void setuName(String uName) {
-		this.uName = uName;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public String getuEmail() {
-		return uEmail;
+	public String getName() {
+		return name;
 	}
 
-	public void setuEmail(String uEmail) {
-		this.uEmail = uEmail;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getuPass() {
-		return uPass;
+	public String getEmail() {
+		return email;
 	}
 
-	public void setuPass(String uPass) {
-		this.uPass = uPass;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
-	public List<UserProgress> getuUprogress() {
-		return uUprogress;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setuUprogress(List<UserProgress> uUprogress) {
-		this.uUprogress = uUprogress;
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public List<UserProgress> getUserProgress() {
+		return userProgress;
+	}
+
+	public void setUserProgress(List<UserProgress> userProgress) {
+		this.userProgress = userProgress;
 	}
 
 	public String getRole() {
@@ -81,27 +101,27 @@ public class User {
 		this.role = role;
 	}
 
-	public String getuPreferredLanguage() {
-		return uPreferredLanguage;
+	public String getPreferredLanguage() {
+		return preferredLanguage;
 	}
 
-	public void setuPreferredLanguage(String uPreferredLanguage) {
-		this.uPreferredLanguage = uPreferredLanguage;
+	public void setPreferredLanguage(String preferredLanguage) {
+		this.preferredLanguage = preferredLanguage;
 	}
 
-	public LocalDateTime getuCreateAt() {
-		return uCreateAt;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void setuCreateAt(LocalDateTime uCreateAt) {
-		this.uCreateAt = uCreateAt;
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
-	public LocalDateTime getuUpdateAt() {
-		return uUpdateAt;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void setuUpdateAt(LocalDateTime uUpdateAt) {
-		this.uUpdateAt = uUpdateAt;
+	public void setUpdateAt(LocalDateTime updateAt) {
+		this.updateAt = updateAt;
 	}
 }

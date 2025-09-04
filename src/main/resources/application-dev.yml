@@ -3,10 +3,15 @@ spring:
     name: LEARNnow
 
   datasource:
-    url: jdbc:mysql://localhost:3306/learnnow_dev
+    url: jdbc:mysql://localhost:3306/learnnow_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
     username: root
     password: 8109133203
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # Hinglish: connection pool settings - agar DB down hai toh app crash na ho
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 5
+      minimum-idle: 1
 
   jpa:
     hibernate:
@@ -15,3 +20,22 @@ spring:
     properties:
         hibernate:
           dialect: org.hibernate.dialect.MySQL8Dialect
+          format_sql: true
+    # Hinglish: agar database connection fail ho toh bhi app start ho jaye
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      continue-on-error: true
+
+# Hinglish: JWT configuration add kar rahe hai jo missing tha
+jwt:
+  secret: mySecretKeyForLEARNnowProjectWhichShouldBeLongEnoughForSecurity
+  expiration: 86400000  # 24 hours
+
+# Hinglish: logging level set kar rahe hai debugging ke liye
+logging:
+  level:
+    me.learn.now: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

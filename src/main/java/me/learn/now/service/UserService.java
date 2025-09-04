@@ -21,8 +21,8 @@ public class UserService {
     // Create user
     public User addUser(User user) {
         // Hinglish: plain text password kabhi store nahi karni, yaha hash kar diya
-        if (user.getuPass() != null && !user.getuPass().isBlank()) {
-            user.setuPass(passwordEncoder.encode(user.getuPass()));
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return ur.save(user);
     }
@@ -44,8 +44,8 @@ public class UserService {
     // Update basic fields (name/email)
     public User updateUser(Long id, User user){
         User existingUser = ur.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-        existingUser.setuName(user.getuName());
-        existingUser.setuEmail(user.getuEmail());
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
         return ur.save(existingUser);
     }
 
@@ -56,11 +56,11 @@ public class UserService {
 
         User user = ur.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         // Hinglish: agar naya password same hai purane se (match ho gaya) toh error
-        if (passwordEncoder.matches(newPassword, user.getuPass())) {
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new RuntimeException("New password cannot be the same as the old password");
         }
         // Hinglish: hash karke store karo
-        user.setuPass(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword));
         return ur.save(user);
     }
 }

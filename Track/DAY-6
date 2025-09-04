@@ -1,0 +1,55 @@
+DAY-6
+
+Aaj ka kaam (Topic & Video Management)
+
+1) Topic Controller Complete Implementation
+- TopicController me full CRUD operations add kiye:
+  - POST /api/topics → create new topic
+  - GET /api/topics → list all topics
+  - GET /api/topics/{id} → get topic by ID
+  - PUT /api/topics/{id} → update topic
+  - DELETE /api/topics/{id} → delete topic
+- TopicService me business logic implement kiya with proper error handling.
+
+2) Video Controller & Service
+- VideoController banaya with YouTube integration in mind:
+  - POST /api/videos → add video to topic
+  - GET /api/videos → list all videos
+  - GET /api/videos/{id} → get specific video
+  - PUT /api/videos/{id} → update video details
+  - DELETE /api/videos/{id} → remove video
+- VideoService me duration parsing aur chapter handling add kiya.
+
+3) Topic-Video Relationship Enhancement
+- Topic entity me videos collection properly mapped.
+- Video entity me topic reference with @ManyToOne.
+- Cascade operations properly configured.
+
+4) Data Validation
+- @Valid annotations add kiye controllers me.
+- Basic validation rules entities me define kiye.
+- Custom validation messages add kiye.
+
+5) Exception Handling
+- GlobalExceptionHandler banaya common errors ke liye.
+- Custom exception classes add kiye (ResourceNotFoundException etc.).
+- Proper error responses with status codes.
+
+Testing Status
+- Topic CRUD operations working properly.
+- Video-Topic relationship functioning correctly.
+- JWT authentication protecting all endpoints.
+
+Next Steps (DAY-7)
+- Quiz management system implement karna hai.
+- UserProgress tracking start karna hai.
+- Database optimization karna hai.
+
+Files touched today:
+- src/main/java/me/learn/now/controller/TopicController.java
+- src/main/java/me/learn/now/service/TopicService.java
+- src/main/java/me/learn/now/controller/VideoController.java
+- src/main/java/me/learn/now/service/VideoService.java
+- src/main/java/me/learn/now/exception/GlobalExceptionHandler.java
+- src/main/java/me/learn/now/model/Topic.java
+- src/main/java/me/learn/now/model/Video.java

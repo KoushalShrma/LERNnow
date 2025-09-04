@@ -8,6 +8,6 @@ import java.util.List;
 // CHANGED: Extend JpaRepository to get CRUD methods for Video
 // extends JpaRepository<Video, Long> → Spring Data repository with Long primary key
 public interface VideoRepo extends JpaRepository<Video, Long> {
-    // Fetch videos for a topic ordered by vPosition ascending
-    List<Video> findByVTopic_TIdOrderByVPositionAsc(Long tId);
+    // Hinglish: topic ke videos position ke order me fetch karne ke liye - updated field names
+    List<Video> findByTopicIdOrderByPositionAsc(Long topicId);
 }

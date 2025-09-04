@@ -39,10 +39,10 @@ public class TopicService {
 
     public Topic changeTopic(Long id, Topic topic) {
         Topic existingTopic = tr.findById(id).orElseThrow(() -> new RuntimeException("Topic not found"));
-        existingTopic.settName(topic.gettName());
-        existingTopic.settDescription(topic.gettDescription());
-        existingTopic.settLanguage(topic.gettLanguage());
-        existingTopic.settPurpose(topic.gettPurpose());
+        existingTopic.setName(topic.getName());
+        existingTopic.setDescription(topic.getDescription());
+        existingTopic.setLanguage(topic.getLanguage());
+        existingTopic.setPurpose(topic.getPurpose());
         return tr.save(existingTopic);
     }
 
@@ -57,22 +57,22 @@ public class TopicService {
     public List<Video> getVideoForTopic(Long tid) {
         // Ensure topic exists (optional but helpful)
         tr.findById(tid).orElseThrow(() -> new RuntimeException("Topic not found"));
-        return vr.findByVTopic_TIdOrderByVPositionAsc(tid);
+        return vr.findByTopicIdOrderByPositionAsc(tid);
     }
 
     public List<Quiz> getQuizzesForTopic(Long tid) {
         tr.findById(tid).orElseThrow(() -> new RuntimeException("Topic not found"));
-        return qr.findByQTopic_TId(tid);
+        return qr.findByTopicId(tid);
     }
 
     @Transactional
     public List<Video> reorderVideos(Long topicId, List<Long> orderedVideoIds) {
         tr.findById(topicId).orElseThrow(() -> new RuntimeException("Topic not found"));
 
-        List<Video> videos = vr.findByVTopic_TIdOrderByVPositionAsc(topicId);
+        List<Video> videos = vr.findByTopicIdOrderByPositionAsc(topicId);
         if (videos.isEmpty()) return videos;
 
-        Map<Long, Video> byId = videos.stream().collect(Collectors.toMap(Video::getvId, v -> v));
+        Map<Long, Video> byId = videos.stream().collect(Collectors.toMap(Video::getId, v -> v));
 
         // Validate: all provided IDs belong to this topic
         for (Long vid : orderedVideoIds) {
@@ -88,7 +88,7 @@ public class TopicService {
         int pos = 1;
         for (Long vid : orderedVideoIds) {
             Video v = byId.get(vid);
-            v.setvPosition(pos++);
+            v.setPosition(pos++);
         }
         return vr.saveAll(orderedVideoIds.stream().map(byId::get).collect(Collectors.toList()));
     }

@@ -9,88 +9,107 @@ public class UserProgress {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long uPid;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "uId", nullable = false)
-    private User uPuser;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "tId")
-    private Topic uPtopic;
+    private Topic topic;
 
     // CHANGED: Use enum for status and persist by name for clarity
     // @Enumerated(EnumType.STRING) → Store enum value as string (NOT_STARTED/IN_PROGRESS/COMPLETED)
     @Enumerated(EnumType.STRING)
-    private ProgressStatus uPstatus; // e.g., NOT_STARTED, IN_PROGRESS, COMPLETED
+    private ProgressStatus status; // e.g., NOT_STARTED, IN_PROGRESS, COMPLETED
 
-    private LocalDateTime uPlastSeenAt;
-    private Integer uPsecondsWatched;
-    private LocalDateTime uPcreateAt;
-    private LocalDateTime uPupdateAt;
+    private LocalDateTime lastSeenAt;
+    private Integer secondsWatched;
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
 
-
-    public Long getuPid() {
-        return uPid;
+    @PrePersist
+    protected void onCreate() {
+        // Hinglish: naya progress entry create hone pe timestamps set kar dete hai
+        createAt = LocalDateTime.now();
+        updateAt = LocalDateTime.now();
+        // Hinglish: default status NOT_STARTED rakh dete hai agar kuch nahi hai
+        if (status == null) {
+            status = ProgressStatus.NOT_STARTED;
+        }
     }
 
-    public void setuPid(Long uPid) {
-        this.uPid = uPid;
+    @PreUpdate
+    protected void onUpdate() {
+        // Hinglish: progress update hone pe timestamp aur lastSeenAt update kar dete hai
+        updateAt = LocalDateTime.now();
+        if (status == ProgressStatus.IN_PROGRESS) {
+            lastSeenAt = LocalDateTime.now();
+        }
     }
 
-    public User getuPuser() {
-        return uPuser;
+    public Long getId() {
+        return id;
     }
 
-    public void setuPuser(User uPuser) {
-        this.uPuser = uPuser;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Topic getuPtopic() {
-        return uPtopic;
+    public User getUser() {
+        return user;
     }
 
-    public void setuPtopic(Topic uPtopic) {
-        this.uPtopic = uPtopic;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public ProgressStatus getuPstatus() {
-        return uPstatus;
+    public Topic getTopic() {
+        return topic;
     }
 
-    public void setuPstatus(ProgressStatus uPstatus) {
-        this.uPstatus = uPstatus;
+    public void setTopic(Topic topic) {
+        this.topic = topic;
     }
 
-    public LocalDateTime getuPlastSeenAt() {
-        return uPlastSeenAt;
+    public ProgressStatus getStatus() {
+        return status;
     }
 
-    public void setuPlastSeenAt(LocalDateTime uPlastSeenAt) {
-        this.uPlastSeenAt = uPlastSeenAt;
+    public void setStatus(ProgressStatus status) {
+        this.status = status;
     }
 
-    public Integer getuPsecondsWatched() {
-        return uPsecondsWatched;
+    public LocalDateTime getLastSeenAt() {
+        return lastSeenAt;
     }
 
-    public void setuPsecondsWatched(Integer uPsecondsWatched) {
-        this.uPsecondsWatched = uPsecondsWatched;
+    public void setLastSeenAt(LocalDateTime lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
     }
 
-    public LocalDateTime getuPcreateAt() {
-        return uPcreateAt;
+    public Integer getSecondsWatched() {
+        return secondsWatched;
     }
 
-    public void setuPcreateAt(LocalDateTime uPcreateAt) {
-        this.uPcreateAt = uPcreateAt;
+    public void setSecondsWatched(Integer secondsWatched) {
+        this.secondsWatched = secondsWatched;
     }
 
-    public LocalDateTime getuPupdateAt() {
-        return uPupdateAt;
+    public LocalDateTime getCreateAt() {
+        return createAt;
     }
 
-    public void setuPupdateAt(LocalDateTime uPupdateAt) {
-        this.uPupdateAt = uPupdateAt;
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
+    }
+
+    public LocalDateTime getUpdateAt() {
+        return updateAt;
+    }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
     }
 }

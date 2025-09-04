@@ -10,123 +10,135 @@ public class Video {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long vId;
-	private String vYoutubeId;
-	private String vTitle;
-	private String vChannel;
-	private Integer vDuration; // in seconds
-	private String vLanguage;
-	private Integer vPosition; // position in the topic
-	private String vChaptersJson; // JSON representation of chapters
-	private LocalDateTime vCreateAt;
-	private LocalDateTime vUpdateAt;
+	private Long id;
+	private String youtubeId;
+	private String title;
+	private String channel;
+	private Integer duration; // in seconds
+	private String language;
+	private Integer position; // position in the topic
+	private String chaptersJson; // JSON representation of chapters
+	private LocalDateTime createAt;
+	private LocalDateTime updateAt;
 
 	// No change: Video is the owning side with FK tId
 	// @ManyToOne @JoinColumn(name = "tId") → Many-to-One relation (Video → Topic) using foreign key column tId
 	@ManyToOne
 	@JoinColumn(name = "tId")
-	private Topic vTopic;
+	private Topic topic;
 
 	// CHANGED: Remove CascadeType.ALL to avoid deleting Quiz when Video is deleted; keep association optional
 	// @OneToOne(optional = true) → One-to-One relation (Video ↔ Quiz), quiz is optional and not cascaded
 	@OneToOne(optional = true)
 	@JoinColumn(name = "qId", referencedColumnName = "qId")
-	private Quiz vQuiz;
+	private Quiz quiz;
 
-
-	public Long getvId() {
-		return vId;
+	@PrePersist
+	protected void onCreate() {
+		// Hinglish: naya video add hone pe timestamps set kar dete hai
+		createAt = LocalDateTime.now();
+		updateAt = LocalDateTime.now();
 	}
 
-	public void setvId(Long vId) {
-		this.vId = vId;
+	@PreUpdate
+	protected void onUpdate() {
+		// Hinglish: video update hone pe sirf update timestamp change karte hai
+		updateAt = LocalDateTime.now();
 	}
 
-	public String getvYoutubeId() {
-		return vYoutubeId;
+	public Long getId() {
+		return id;
 	}
 
-	public void setvYoutubeId(String vYoutubeId) {
-		this.vYoutubeId = vYoutubeId;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public String getvTitle() {
-		return vTitle;
+	public String getYoutubeId() {
+		return youtubeId;
 	}
 
-	public void setvTitle(String vTitle) {
-		this.vTitle = vTitle;
+	public void setYoutubeId(String youtubeId) {
+		this.youtubeId = youtubeId;
 	}
 
-	public String getvChannel() {
-		return vChannel;
+	public String getTitle() {
+		return title;
 	}
 
-	public void setvChannel(String vChannel) {
-		this.vChannel = vChannel;
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
-	public Integer getvDuration() {
-		return vDuration;
+	public String getChannel() {
+		return channel;
 	}
 
-	public void setvDuration(Integer vDuration) {
-		this.vDuration = vDuration;
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
 
-	public String getvLanguage() {
-		return vLanguage;
+	public Integer getDuration() {
+		return duration;
 	}
 
-	public void setvLanguage(String vLanguage) {
-		this.vLanguage = vLanguage;
+	public void setDuration(Integer duration) {
+		this.duration = duration;
 	}
 
-	public Integer getvPosition() {
-		return vPosition;
+	public String getLanguage() {
+		return language;
 	}
 
-	public void setvPosition(Integer vPosition) {
-		this.vPosition = vPosition;
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 
-	public String getvChaptersJson() {
-		return vChaptersJson;
+	public Integer getPosition() {
+		return position;
 	}
 
-	public void setvChaptersJson(String vChaptersJson) {
-		this.vChaptersJson = vChaptersJson;
+	public void setPosition(Integer position) {
+		this.position = position;
 	}
 
-	public LocalDateTime getvCreateAt() {
-		return vCreateAt;
+	public String getChaptersJson() {
+		return chaptersJson;
 	}
 
-	public void setvCreateAt(LocalDateTime vCreateAt) {
-		this.vCreateAt = vCreateAt;
+	public void setChaptersJson(String chaptersJson) {
+		this.chaptersJson = chaptersJson;
 	}
 
-	public LocalDateTime getvUpdateAt() {
-		return vUpdateAt;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void setvUpdateAt(LocalDateTime vUpdateAt) {
-		this.vUpdateAt = vUpdateAt;
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
-	public Topic getvTopic() {
-		return vTopic;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void setvTopic(Topic vTopic) {
-		this.vTopic = vTopic;
+	public void setUpdateAt(LocalDateTime updateAt) {
+		this.updateAt = updateAt;
 	}
 
-	public Quiz getvQuiz() {
-		return vQuiz;
+	public Topic getTopic() {
+		return topic;
 	}
 
-	public void setvQuiz(Quiz vQuiz) {
-		this.vQuiz = vQuiz;
+	public void setTopic(Topic topic) {
+		this.topic = topic;
+	}
+
+	public Quiz getQuiz() {
+		return quiz;
+	}
+
+	public void setQuiz(Quiz quiz) {
+		this.quiz = quiz;
 	}
 }
