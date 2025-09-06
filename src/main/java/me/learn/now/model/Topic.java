@@ -18,6 +18,10 @@ public class Topic {
 	private String level;
 	private LocalDateTime createAt;
 	private LocalDateTime updateAt;
+	private String thumbnail;
+	private int estimatedDurationMinutes;
+	private int enrolledUsers;
+	private double rating;
 
 	// CHANGED: Use mappedBy instead of @JoinColumn on OneToMany; FK lives on Video table as tId
 	// @OneToMany(mappedBy = "topic") → One-to-Many relation (Topic → Videos) using the owning side on Video
@@ -120,5 +124,55 @@ public class Topic {
 
 	public void setQuizzes(List<Quiz> quizzes) {
 		this.quizzes = quizzes;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public int getEstimatedDurationMinutes() {
+		return estimatedDurationMinutes;
+	}
+
+	public void setEstimatedDurationMinutes(int estimatedDurationMinutes) {
+		this.estimatedDurationMinutes = estimatedDurationMinutes;
+	}
+
+	public int getEnrolledUsers() {
+		return enrolledUsers;
+	}
+
+	public void setEnrolledUsers(int enrolledUsers) {
+		this.enrolledUsers = enrolledUsers;
+	}
+
+	public double getRating() {
+		return rating;
+	}
+
+	public void setRating(double rating) {
+		this.rating = rating;
+	}
+
+	// Utility methods
+
+	public int getVideoCount() {
+		return videos != null ? videos.size() : 0;
+	}
+
+	public String getEstimatedDuration() {
+		int hours = estimatedDurationMinutes / 60;
+		int minutes = estimatedDurationMinutes % 60;
+
+		if (hours > 0) {
+			return hours + (hours == 1 ? " hour" : " hours") +
+				(minutes > 0 ? " " + minutes + " mins" : "");
+		} else {
+			return minutes + " mins";
+		}
 	}
 }

@@ -24,4 +24,7 @@ src/main/resources/application-secret.yml
 # Misc
 /bin/
 /build/
-.env
+
+prompt.txt
+src/main/resources/prompt.txt
+

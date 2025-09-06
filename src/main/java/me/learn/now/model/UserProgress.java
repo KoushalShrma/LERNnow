@@ -29,6 +29,9 @@ public class UserProgress {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    // Added field for progress percentage
+    private int progressPercentage;
+
     @PrePersist
     protected void onCreate() {
         // Hinglish: naya progress entry create hone pe timestamps set kar dete hai
@@ -48,6 +51,8 @@ public class UserProgress {
             lastSeenAt = LocalDateTime.now();
         }
     }
+
+    // Add getters and setters for all fields
 
     public Long getId() {
         return id;
@@ -111,5 +116,23 @@ public class UserProgress {
 
     public void setUpdateAt(LocalDateTime updateAt) {
         this.updateAt = updateAt;
+    }
+
+    // Add missing methods required by DashboardService
+
+    public int getProgressPercentage() {
+        return progressPercentage;
+    }
+
+    public void setProgressPercentage(int progressPercentage) {
+        this.progressPercentage = progressPercentage;
+    }
+
+    public Long getTopicId() {
+        return topic != null ? topic.getId() : null;
+    }
+
+    public long getStudyTimeSeconds() {
+        return secondsWatched != null ? secondsWatched : 0;
     }
 }

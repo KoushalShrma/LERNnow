@@ -1,0 +1,663 @@
+MASTER PROMPT FOR FRONTEND AI
+Context
+Stack: Spring Boot 3.2 (Java 17), Spring Web, Spring Security (JWT), Spring Data JPA, MySQL 8, Swagger/OpenAPI, Google YouTube Data API v3.
+Project base package: me.learn.now
+Profiles: dev (active), prod, secret-config import for YouTube keys.
+Database: MySQL (hibernate ddl-auto: update)
+JWT: Stateless auth with BCrypt passwords and a symmetric secret; expiration default 24h.
+Important: Base URLs and Ports
+Default Spring Boot port: 8080. The dev profile attempts to set 8081 but appears nested under spring in application-dev.yml; if not effective, the app runs on 8080. Verify actual running port.
+Base API path: rooted at / (no global prefix), with grouped controllers under:
+/api/auth
+/api/public
+/api/users
+/api/topics
+/api/quizzes
+/api/videos
+/api/learning-paths
+/api/youtube
+root helpers: / and /health (public), Swagger at /swagger-ui.html (public)
+Backend Overview
+Architecture
+Layers:
+Controllers: REST endpoints under me.learn.now.controller.*
+Services: Business logic under me.learn.now.service.*
+Repositories: Spring Data JPA under me.learn.now.repository.*
+Models: JPA entities/enums under me.learn.now.model.*
+DTOs: me.learn.now.dto.*
+Security: JWT filter and security config in me.learn.now.config.*
+Exception handling: GlobalExceptionHandler returning a consistent ApiError shape.
+Authentication and Authorization
+JWT-based stateless auth:
+Filter: JwtAuthenticationFilter reads Authorization: Bearer <token> and validates with JwtService.</token>
+UserDetailsServiceImpl loads users by email for Spring Security.
+Passwords: Stored as BCrypt hashes.
+JWT content: subject is the user’s email; default expiration 24h; HS256 signature using configured secret.
+Public endpoints (no auth required):
+/api/auth/** (register, login, me is permitted by config but functionally expects a token)
+/api/public/**
+/api/youtube/**
+/, /health, /actuator/, /v3/api-docs/, /swagger-ui/**, /swagger-ui.html
+All other endpoints require a valid Bearer token.
+Note: Although /api/auth/me is in the permitted list, its controller relies on Authentication injected by Spring Security; treat it as token-required on the client.
+Core configurations and properties
+application.yml:
+spring.profiles.active=dev
+spring.config.import=optional:application-secret.yml
+youtube.api.key and youtube.api.application-name must be provided (do not hardcode in frontend).
+application-dev.yml (dev):
+MySQL connection (url, username, password). Do not embed DB creds in frontend; they’re server-side only.
+jpa.hibernate.ddl-auto=update, show-sql=true (dev)
+jwt.secret and jwt.expiration configured; default secret present for dev; do not expose in frontend.
+Logs: DEBUG for app, security, and SQL
+CORS:
+Global CORS not configured; YouTubeController explicitly has @CrossOrigin("*"). For browser-based calls to secured endpoints from a different origin (e.g., http://localhost:3000), consider a proxy or ensure backend CORS is enabled in deployment.
+Endpoints Documentation (API Contract)
+Conventions
+Authentication: For protected endpoints, send Authorization: Bearer <jwt>.</jwt>
+Content-Type: application/json for JSON bodies.
+Date/time fields: ISO 8601 strings.
+Errors: Consistent ApiError object:
+{ timestamp: string, path: string, code: string, message: string, details?: any }
+404 for not found, 400 for validation/runtime, 401/403 if security triggers.
+AUTH
+POST /api/auth/register
+Purpose: Register a new user (server hashes password).
+Public: Yes.
+Body schema:
+{ name: string, email: string, password: string, preferredLanguage?: string = "en" }
+Success: 200 text message like "User registered successfully! ID: {id}"
+Errors: 400 "Email already registered!" or "Username already taken!" or "Registration failed: ...".
+Example: curl -X POST http://localhost:8080/api/auth/register ^ -H "Content-Type: application/json" ^ -d "{"name":"alice","email":"alice@example.com","password":"S3cret!","preferredLanguage":"en"}"
+POST /api/auth/login
+Purpose: Authenticate and receive a JWT token.
+Public: Yes.
+Body: { email: string, password: string }
+Success: 200 UserLoginResponseDto
+{ token: string, tokenType: "Bearer", userId: number, email: string, name: string }
+Errors: 400 "Login failed: Invalid credentials"
+Example: curl -X POST http://localhost:8080/api/auth/login ^ -H "Content-Type: application/json" ^ -d "{"email":"alice@example.com","password":"S3cret!"}"
+GET /api/auth/me
+Purpose: Return current user (without password).
+Public per config, but functionally requires valid JWT (Authentication injection).
+Headers: Authorization: Bearer <token></token>
+Success: 200 User
+Errors: 400 "Failed to get user details: ..." (if missing/invalid auth)
+Example: curl http://localhost:8080/api/auth/me ^ -H "Authorization: Bearer YOUR_JWT"
+PUBLIC USERS
+POST /api/public/users
+Purpose: Add a user (duplicates some of registration behavior; password hashed in service).
+Public: Yes.
+Body: User entity fields (see models below). Minimum: { name, email, password }
+Success: 200 User (created)
+Errors: 400 if validation fails
+Example: curl -X POST http://localhost:8080/api/public/users ^ -H "Content-Type: application/json" ^ -d "{"name":"bob","email":"bob@example.com","password":"Passw0rd","preferredLanguage":"en"}"
+USERS (Protected)
+GET /api/users
+Purpose: List all users.
+Auth: Required.
+Success: 200 User[]
+Example: curl http://localhost:8080/api/users ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/users/{id}
+Purpose: Get user by ID.
+Auth: Required.
+Success: 200 User | 404
+Example: curl http://localhost:8080/api/users/1 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /api/users/{id}
+Purpose: Update user’s name and email.
+Auth: Required.
+Body: { name: string, email: string }
+Success: 200 User
+Errors: 400/404
+Example: curl -X PUT http://localhost:8080/api/users/1 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"name":"alice2","email":"alice2@example.com"}"
+PUT /api/users/pass/{id}
+Purpose: Update password; rejects same-as-old.
+Auth: Required.
+Body: { uPass: string }
+Success: 200 User
+Errors: 400 "Password cannot be empty", "New password cannot be the same as the old password", 404
+Example: curl -X PUT http://localhost:8080/api/users/pass/1 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"uPass":"N3wStrongP@ss"}"
+DELETE /api/users/{id}
+Purpose: Delete user by ID.
+Auth: Required.
+Success: 200 User (deleted) or 404
+Example: curl -X DELETE http://localhost:8080/api/users/1 ^ -H "Authorization: Bearer YOUR_JWT"
+TOPICS (Protected)
+POST /api/topics
+Purpose: Create topic.
+Auth: Required.
+Body: Topic
+Success: 200 Topic
+Example: curl -X POST http://localhost:8080/api/topics ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"name":"Java Basics","description":"Intro","language":"en","purpose":"LEARNING","level":"BEGINNER","estimatedDurationMinutes":90}"
+GET /api/topics
+Purpose: List topics.
+Auth: Required.
+Success: 200 Topic[]
+Example: curl http://localhost:8080/api/topics ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/topics/{id}
+Purpose: Get topic by ID.
+Auth: Required.
+Success: 200 Topic | 404
+Example: curl http://localhost:8080/api/topics/1 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /api/topics/{id}
+Purpose: Update core fields of a topic (name, description, language, purpose).
+Auth: Required.
+Body: Topic (relevant fields)
+Success: 200 Topic
+Example: curl -X PUT http://localhost:8080/api/topics/1 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"name":"Java Basics Updated","description":"Intro 2","language":"en","purpose":"LEARNING"}"
+DELETE /api/topics/{id}
+Purpose: Delete topic.
+Auth: Required.
+Success: 200 Topic | 404
+Example: curl -X DELETE http://localhost:8080/api/topics/1 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/topics/{id}/videos
+Purpose: List videos for topic ordered by position.
+Auth: Required.
+Success: 200 Video[]
+Example: curl http://localhost:8080/api/topics/1/videos ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/topics/{id}/quizzes
+Purpose: List quizzes for topic.
+Auth: Required.
+Success: 200 Quiz[]
+Example: curl http://localhost:8080/api/topics/1/quizzes ^ -H "Authorization: Bearer YOUR_JWT"
+PATCH /api/topics/{id}/videos/reorder
+Purpose: Reorder all videos in topic by providing the full ordered list of video IDs. List size must match current video count; IDs must belong to the topic.
+Auth: Required.
+Body: number[] (video IDs in new order)
+Success: 200 Video[] (updated)
+Errors: 400 with error message if size mismatch or ID doesn’t belong to topic.
+Example: curl -X PATCH http://localhost:8080/api/topics/1/videos/reorder ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "[5,3,7,9]"
+QUIZZES (Protected)
+POST /api/quizzes
+Purpose: Create a quiz (provide fields; questionsJson is TEXT; topic must be referenced).
+Auth: Required.
+Body: Quiz (e.g., { subTopic, difficulty: "EASY|MEDIUM|HARD", language, purpose, isActive, topic: { id }, questionsJson })
+Success: 200 Quiz
+Example: curl -X POST http://localhost:8080/api/quizzes ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"subTopic":"Basics","difficulty":"EASY","language":"en","purpose":"LEARNING","active":true,"topic":{"id":1},"questionsJson":"[{\"id\":0,\"question\":\"Q?\",\"options\":[\"A\",\"B\"],\"correctAnswer\":\"A\"}]"}"
+GET /api/quizzes
+Purpose: List all quizzes.
+Auth: Required.
+Success: 200 Quiz[]
+Example: curl http://localhost:8080/api/quizzes ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/quizzes/{id}
+Purpose: Get quiz by ID.
+Auth: Required.
+Success: 200 Quiz | 404
+Example: curl http://localhost:8080/api/quizzes/10 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /api/quizzes/{id}
+Purpose: Update quiz.
+Auth: Required.
+Body: Quiz (fields to overwrite)
+Success: 200 Quiz
+Example: curl -X PUT http://localhost:8080/api/quizzes/10 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"language":"en","purpose":"EXAM","active":true}"
+DELETE /api/quizzes/{id}
+Purpose: Delete quiz.
+Auth: Required.
+Success: 200 Quiz | 404
+Example: curl -X DELETE http://localhost:8080/api/quizzes/10 ^ -H "Authorization: Bearer YOUR_JWT"
+PATCH /api/quizzes/{id}/active?active={true|false}
+Purpose: Toggle active flag.
+Auth: Required.
+Success: 200 Quiz
+Example: curl -X PATCH "http://localhost:8080/api/quizzes/10/active?active=true" ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/quizzes/topic/{topicId}
+Purpose: Active quizzes by topic.
+Auth: Required.
+Success: 200 Quiz[]
+Example: curl http://localhost:8080/api/quizzes/topic/1 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/quizzes/difficulty/{difficulty}
+Purpose: Active quizzes by difficulty.
+Auth: Required.
+Path: difficulty is EASY|MEDIUM|HARD
+Success: 200 Quiz[]
+Example: curl http://localhost:8080/api/quizzes/difficulty/MEDIUM ^ -H "Authorization: Bearer YOUR_JWT"
+POST /api/quizzes/generate?topicId={id}&difficulty={EASY|MEDIUM|HARD}&language={en|...}
+Purpose: Generate and persist a quiz with sample questions for a topic and difficulty.
+Auth: Required.
+Success: 200 Quiz
+Errors: 404 Topic not found
+Example: curl -X POST "http://localhost:8080/api/quizzes/generate?topicId=1&difficulty=EASY&language=en" ^ -H "Authorization: Bearer YOUR_JWT"
+POST /api/quizzes/{quizId}/submit
+Purpose: Submit answers; expects keys q0, q1, ...
+Auth: Required.
+Body: { "q0": "Option A", "q1": "Option C", ... }
+Success: 200 { totalQuestions: number, correctAnswers: number, percentage: number, grade: "A+|A|B|C|F", passed: boolean (>=60%) }
+Errors: 400 if parsing fails or quiz not found (404 mapping may become 400 depending on throw)
+Example: curl -X POST http://localhost:8080/api/quizzes/10/submit ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"q0":"Option A","q1":"Option B"}"
+VIDEOS (Protected)
+POST /api/videos
+Purpose: Create a video (optional link to a quiz; topic required to attach).
+Auth: Required.
+Body: Video (e.g., { youtubeId, title, channel, duration, language, position, chaptersJson, topic: { id }, quiz?: { id } })
+Success: 200 Video
+Example: curl -X POST http://localhost:8080/api/videos ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"youtubeId":"YID123","title":"Intro","channel":"Channel","duration":600,"language":"en","position":1,"topic":{"id":1}}"
+GET /api/videos
+Purpose: List all videos.
+Auth: Required.
+Success: 200 Video[]
+Example: curl http://localhost:8080/api/videos ^ -H "Authorization: Bearer YOUR_JWT"
+GET /api/videos/{id}
+Purpose: Get video by ID.
+Auth: Required.
+Success: 200 Video | 404
+Example: curl http://localhost:8080/api/videos/5 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /api/videos/{id}
+Purpose: Update a video (all fields in service).
+Auth: Required.
+Body: Video
+Success: 200 Video
+Example: curl -X PUT http://localhost:8080/api/videos/5 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"title":"New title","position":2}"
+DELETE /api/videos/{id}
+Purpose: Delete video.
+Auth: Required.
+Success: 200 Video | 404
+Example: curl -X DELETE http://localhost:8080/api/videos/5 ^ -H "Authorization: Bearer YOUR_JWT"
+USER PROGRESS (Protected, nested under user) Base: /api/users/{userId}/progress
+GET /
+Purpose: List a user’s progress.
+Auth: Required.
+Success: 200 UserProgress[]
+Example: curl http://localhost:8080/api/users/1/progress ^ -H "Authorization: Bearer YOUR_JWT"
+POST /
+Purpose: Create a progress entry for user; optionally attach topic by id.
+Auth: Required.
+Body: UserProgress (e.g., { topic: { id }, status: "NOT_STARTED|IN_PROGRESS|COMPLETED", secondsWatched, lastSeenAt })
+Success: 200 UserProgress
+Example: curl -X POST http://localhost:8080/api/users/1/progress ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"topic":{"id":1},"status":"IN_PROGRESS","secondsWatched":120}"
+GET /{progressId}
+Purpose: Get a specific progress entry (ownership enforced).
+Auth: Required.
+Success: 200 UserProgress | 404
+Example: curl http://localhost:8080/api/users/1/progress/100 ^ -H "Authorization: Bearer YOUR_JWT"
+PATCH /{progressId}
+Purpose: Partially update progress fields (status, secondsWatched, lastSeenAt).
+Auth: Required.
+Body: UserProgress (fields to update)
+Success: 200 UserProgress
+Example: curl -X PATCH http://localhost:8080/api/users/1/progress/100 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"status":"COMPLETED","secondsWatched":600}"
+DELETE /{progressId}
+Purpose: Delete a progress entry (ownership enforced).
+Auth: Required.
+Success: 200 UserProgress | 404
+Example: curl -X DELETE http://localhost:8080/api/users/1/progress/100 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /by-topic/{topicId}
+Purpose: Get progress for a given topic for user.
+Auth: Required.
+Success: 200 UserProgress | 404
+Example: curl http://localhost:8080/api/users/1/progress/by-topic/1 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /by-topic/{topicId}/status
+Purpose: Set status for user’s topic progress. Accepts either query param or body.
+Auth: Required.
+Params: value=NOT_STARTED|IN_PROGRESS|COMPLETED
+OR Body: { value: "IN_PROGRESS" }
+Success: 200 UserProgress
+Example (query): curl -X PUT "http://localhost:8080/api/users/1/progress/by-topic/1/status?value=IN_PROGRESS" ^ -H "Authorization: Bearer YOUR_JWT"
+Example (body): curl -X PUT http://localhost:8080/api/users/1/progress/by-topic/1/status ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"value":"COMPLETED"}"
+PUT /by-topic/{topicId}/watch-seconds
+Purpose: Set watch seconds for user’s topic progress. Accepts query or body.
+Auth: Required.
+Params: value=number
+OR Body: { value: number }
+Success: 200 UserProgress
+Example: curl -X PUT "http://localhost:8080/api/users/1/progress/by-topic/1/watch-seconds?value=540" ^ -H "Authorization: Bearer YOUR_JWT"
+DASHBOARD (Protected, nested under user) Base: /api/users/{userId}
+GET /stats
+Purpose: Overview stats (topics, quizzes, averageScore, streakDays, totalXP, totalStudyTimeMinutes, favoriteTopic).
+Auth: Required.
+Success: 200 UserStatsDTO
+Example: curl http://localhost:8080/api/users/1/stats ^ -H "Authorization: Bearer YOUR_JWT"
+GET /activity?limit={n}
+Purpose: Recent activities (quiz/video) with timestamps and formatted “date”.
+Auth: Required.
+Params: limit default 5
+Success: 200 ActivityDTO[]
+Example: curl "http://localhost:8080/api/users/1/activity?limit=5" ^ -H "Authorization: Bearer YOUR_JWT"
+GET /recommendations?limit={n}
+Purpose: Continue/new/challenge recommendations.
+Auth: Required.
+Params: limit default 3
+Success: 200 RecommendationDTO[]
+Example: curl "http://localhost:8080/api/users/1/recommendations?limit=3" ^ -H "Authorization: Bearer YOUR_JWT"
+POST /progress
+Purpose: Track start/resume course action (placeholder; returns 200).
+Auth: Required.
+Body: { topicId: number, action: "start"|"resume" }
+Success: 200 empty
+Example: curl -X POST http://localhost:8080/api/users/1/progress ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"topicId":1,"action":"start"}"
+POST /challenges/start
+Purpose: Start a challenge (placeholder; returns 200).
+Auth: Required.
+Body: { challengeId: number }
+Success: 200 empty
+Example: curl -X POST http://localhost:8080/api/users/1/challenges/start ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"challengeId":42}"
+LEARNING PATHS (Protected except “public” listing) Base: /api/learning-paths
+POST /user/{userId}
+Purpose: Create a learning path for a user.
+Auth: Required.
+Body: LearningPath (without topics initially)
+Success: 200 LearningPath
+Example: curl -X POST http://localhost:8080/api/learning-paths/user/1 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"name":"Java Track","description":"Full path","purpose":"JOB_INTERVIEW","language":"en","level":"BEGINNER","estimatedHours":40,"isPublic":true}"
+GET /user/{userId}
+Purpose: List user’s learning paths.
+Auth: Required.
+Success: 200 LearningPath[]
+Example: curl http://localhost:8080/api/learning-paths/user/1 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /{pathId}
+Purpose: Get learning path by ID.
+Auth: Required.
+Success: 200 LearningPath | 404
+Example: curl http://localhost:8080/api/learning-paths/10 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /public
+Purpose: List public learning paths.
+Public: Yes.
+Success: 200 LearningPath[]
+Example: curl http://localhost:8080/api/learning-paths/public
+GET /popular
+Purpose: Popular public paths (ordered by number of topics).
+Public: Yes.
+Success: 200 LearningPath[]
+Example: curl http://localhost:8080/api/learning-paths/popular
+POST /{pathId}/topics/{topicId}
+Purpose: Add topic to path (no duplicates).
+Auth: Required.
+Success: 200 LearningPath (updated)
+Errors: 404 if not found
+Example: curl -X POST http://localhost:8080/api/learning-paths/10/topics/1 ^ -H "Authorization: Bearer YOUR_JWT"
+DELETE /{pathId}/topics/{topicId}
+Purpose: Remove topic from path.
+Auth: Required.
+Success: 200 LearningPath (updated)
+Example: curl -X DELETE http://localhost:8080/api/learning-paths/10/topics/1 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /{pathId}
+Purpose: Update learning path properties (name, description, purpose, language, level, estimatedHours, isPublic).
+Auth: Required.
+Body: LearningPath
+Success: 200 LearningPath
+Example: curl -X PUT http://localhost:8080/api/learning-paths/10 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"name":"Updated","isPublic":false}"
+DELETE /{pathId}
+Purpose: Delete learning path.
+Auth: Required.
+Success: 200 empty | 404
+Example: curl -X DELETE http://localhost:8080/api/learning-paths/10 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /filter/purpose/{purpose}
+Purpose: Filter by purpose.
+Auth: Required.
+Success: 200 LearningPath[]
+Example: curl http://localhost:8080/api/learning-paths/filter/purpose/JOB_INTERVIEW ^ -H "Authorization: Bearer YOUR_JWT"
+GET /filter/language/{language}
+Purpose: Filter by language.
+Auth: Required.
+Success: 200 LearningPath[]
+Example: curl http://localhost:8080/api/learning-paths/filter/language/en ^ -H "Authorization: Bearer YOUR_JWT"
+SCORECARDS (Protected, partially nested under user) Base: /api
+POST /scorecards
+Purpose: Create a scorecard (usually generated via /users/{userId}/scorecard/generate).
+Auth: Required.
+Body: ScoreCard (user: { id } required)
+Success: 200 ScoreCard
+Example: curl -X POST http://localhost:8080/api/scorecards ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"user":{"id":1},"accuracy":0,"consistency":0,"discipline":0,"dedication":0}"
+GET /scorecards
+Purpose: List all scorecards.
+Auth: Required.
+Success: 200 ScoreCard[]
+Example: curl http://localhost:8080/api/scorecards ^ -H "Authorization: Bearer YOUR_JWT"
+GET /scorecards/{id}
+Purpose: Get scorecard by ID.
+Auth: Required.
+Success: 200 ScoreCard | 404
+Example: curl http://localhost:8080/api/scorecards/5 ^ -H "Authorization: Bearer YOUR_JWT"
+PUT /scorecards/{id}
+Purpose: Update tracked metrics.
+Auth: Required.
+Body: ScoreCard (metrics fields)
+Success: 200 ScoreCard
+Example: curl -X PUT http://localhost:8080/api/scorecards/5 ^ -H "Authorization: Bearer YOUR_JWT" ^ -H "Content-Type: application/json" ^ -d "{"accuracy":85.5,"consistency":70}"
+DELETE /scorecards/{id}
+Purpose: Delete scorecard.
+Auth: Required.
+Success: 200 ScoreCard | 404
+Example: curl -X DELETE http://localhost:8080/api/scorecards/5 ^ -H "Authorization: Bearer YOUR_JWT"
+GET /users/{userId}/scorecard
+Purpose: Get scorecard by user.
+Auth: Required.
+Success: 200 ScoreCard | 404
+Example: curl http://localhost:8080/api/users/1/scorecard ^ -H "Authorization: Bearer YOUR_JWT"
+POST /users/{userId}/scorecard/generate
+Purpose: Generate or update a user’s scorecard from progress.
+Auth: Required.
+Success: 200 ScoreCard
+Example: curl -X POST http://localhost:8080/api/users/1/scorecard/generate ^ -H "Authorization: Bearer YOUR_JWT"
+GET /users/{userId}/performance-summary
+Purpose: Get a human-readable performance summary text.
+Auth: Required.
+Success: 200 string
+Example: curl http://localhost:8080/api/users/1/performance-summary ^ -H "Authorization: Bearer YOUR_JWT"
+YOUTUBE (Public with CORS enabled) Base: /api/youtube
+GET /search?query={q}&max={n}
+Purpose: Search educational videos via YouTube API.
+Public: Yes.
+Success: 200 YouTubeVideoDto[]
+Example: curl "http://localhost:8080/api/youtube/search?query=java&max=5"
+GET /popular?max={n}
+Purpose: Videos from a random popular programming channel.
+Public: Yes.
+Success: 200 YouTubeVideoDto[]
+Example: curl "http://localhost:8080/api/youtube/popular?max=6"
+GET /topic/{topic}?max={n}
+Purpose: Curated search by topic keyword (e.g., java, python, react, spring).
+Public: Yes.
+Success: 200 YouTubeVideoDto[]
+Example: curl "http://localhost:8080/api/youtube/topic/java?max=6"
+GET /health
+Purpose: Light YouTube API health check.
+Public: Yes.
+Success: 200 "YouTube API working perfectly!" or similar string.
+Example: curl http://localhost:8080/api/youtube/health
+ROOT/HEALTH (Public)
+GET /
+Purpose: Text banner indicating backend is running.
+Example: curl http://localhost:8080/
+GET /health
+Purpose: Backend health.
+Example: curl http://localhost:8080/health
+Entities and Data Models
+Enums
+Difficulty: EASY | MEDIUM | HARD
+ProgressStatus: NOT_STARTED | IN_PROGRESS | COMPLETED
+User
+id (uId): number
+name (uName): string, unique, required
+email (uEmail): string, unique, required
+password (uPass): string, required (BCrypted at rest)
+role: string = "USER"
+preferredLanguage (uPreferredLanguage): string = "en"
+createAt (uCreateAt): string (ISO timestamp)
+updateAt (uUpdateAt): string (ISO timestamp)
+Relationships: oneToMany userProgress[]
+Topic
+id: number
+name: string
+description: string
+purpose: string
+language: string
+level: string
+thumbnail: string
+estimatedDurationMinutes: number
+enrolledUsers: number
+rating: number
+createAt/updateAt: string
+Relationships:
+videos: Video[] (oneToMany)
+quizzes: Quiz[] (oneToMany)
+Video
+id: number
+youtubeId: string
+title: string
+channel: string
+duration: number (seconds)
+language: string
+position: number (ordering within topic)
+chaptersJson: string (JSON string)
+createAt/updateAt: string
+topic: { id: number }
+quiz?: { id: number } (optional one-to-one)
+Quiz
+id (qId): number
+subTopic (qSubTopic): string
+difficulty (qDifficulty): "EASY|MEDIUM|HARD"
+language (qLanguage): string
+purpose (qPurpose): string
+isActive (qIsActive): boolean
+createAt/updateAt: string
+topic: { id: number }
+questionsJson (TEXT): stringified JSON array of questions. Each question:
+{ id: number, question: string, type: "multiple_choice", options: string[], correctAnswer: string }
+UserProgress
+id: number
+user: { id: number }
+topic: { id: number }
+status: "NOT_STARTED|IN_PROGRESS|COMPLETED"
+lastSeenAt: string
+secondsWatched: number
+progressPercentage: number
+createAt/updateAt: string
+ScoreCard
+id: number
+user: { id: number }
+topic?: { id: number } (used for activity association)
+accuracy: number
+consistency: number
+discipline: number
+dedication: number
+streakDays: number
+score: number (used in averages)
+createdAt/updateAt: string
+LearningPath
+id: number
+name: string (required)
+description: string
+purpose: string
+language: string
+level: string
+user: { id: number }
+topics: { id: number }[]
+estimatedHours: number
+isPublic: boolean
+createAt/updateAt: string
+DTOs returned by dashboard and YouTube
+UserStatsDTO:
+{ totalTopics, completedTopics, totalQuizzes, averageScore, streakDays, totalXP, totalStudyTimeMinutes, favoriteTopic }
+ActivityDTO:
+{ id, type: "quiz"|"video"|"achievement"|"progress", title, score?, progress?, timestamp, date, topicId?, topicName?, detail? }
+RecommendationDTO:
+{ id, type: "continue"|"new"|"challenge", title, description, timeLeft?, duration?, reward?, icon, topicId?, topicName?, topicDescription?, progress?, reason? }
+YouTubeVideoDto:
+{ videoId, title, description, channelTitle, thumbnailUrl, videoUrl, publishedAt, duration, viewCount, category }
+User Flows
+Signup/Login
+Register: POST /api/auth/register with name, email, password, preferredLanguage. On success, server persists user (password hashed).
+Login: POST /api/auth/login with email/password. Save token from response.
+Authenticated Fetch: Include Authorization: Bearer <token>.</token>
+Profile: GET /api/auth/me to fetch current user profile (must include token even though endpoint is permitted in config).
+Explore Topics and Videos
+List topics: GET /api/topics (protected)
+Topic details: GET /api/topics/{id}, then GET /api/topics/{id}/videos for ordered content.
+Update ordering: PATCH /api/topics/{id}/videos/reorder with array of video IDs.
+Progress Tracking
+When a user watches a video in a topic:
+Initialize or update: PUT /api/users/{userId}/progress/by-topic/{topicId}/watch-seconds?value=seconds
+Optionally set status: PUT /api/users/{userId}/progress/by-topic/{topicId}/status?value=IN_PROGRESS|COMPLETED
+Business rule: If secondsWatched > 300, service marks status COMPLETED automatically in one path.
+Quizzes
+Generate (optional): POST /api/quizzes/generate?topicId&difficulty&language
+List for topic: GET /api/quizzes/topic/{topicId}
+Submit answers: POST /api/quizzes/{quizId}/submit with q0, q1, ...
+Read result (percentage, grade, passed)
+Learning Paths
+Create: POST /api/learning-paths/user/{userId} with name, description, purpose, etc.
+Add topics: POST /api/learning-paths/{pathId}/topics/{topicId}
+Filter: /public, /popular, filter by purpose/language
+Update/delete path as needed
+Scorecard and Dashboard
+Generate/refresh scorecard: POST /api/users/{userId}/scorecard/generate
+Get performance summary: GET /api/users/{userId}/performance-summary
+Dashboard stats: GET /api/users/{userId}/stats
+Recent activity: GET /api/users/{userId}/activity?limit
+Recommendations: GET /api/users/{userId}/recommendations?limit
+YouTube Discovery (Public)
+Search: GET /api/youtube/search?query&max
+Popular: GET /api/youtube/popular?max
+Topic-based: GET /api/youtube/topic/{topic}?max
+Security Notes
+Tokens:
+Obtain via /api/auth/login.
+Store securely on frontend (memory or httpOnly cookie via a backend if possible). For SPA, if using localStorage, ensure CSRF/XS-Search mitigations.
+Send on protected endpoints in Authorization: Bearer <token>.</token>
+Passwords:
+Never stored or sent hashed by client; backend hashes with BCrypt.
+Password update endpoint disallows reusing the same password.
+Roles:
+role field exists but no role-based authorization enforced in controllers; treat as standard user.
+Rate limits:
+None implemented; consider frontend retry/backoff policies.
+CORS:
+Only YouTube routes explicitly @CrossOrigin("*"). For browser-origin calls to protected APIs across origins, use a dev proxy or enable CORS server-side in deployment.
+JWT Expiration:
+Default 24h; no refresh token built-in; implement re-login or refresh strategy on 401/403.
+Secrets:
+YouTube API key is server-side configured; frontend should not expose it. Do not include any secret key in client code.
+Frontend Integration Guidance
+Base URL:
+Use an environment variable, e.g., VITE_API_BASE or NEXT_PUBLIC_API_BASE pointing to http://localhost:8080 (or 8081 if verified).
+Auth flow:
+Register (optional), then login to get token.
+Store token and add to Authorization header for all non-public routes.
+On 401/403, redirect to login and clear token.
+Data handling:
+Expect ISO timestamps and numeric IDs.
+Some endpoints return strings for messages; most return entity JSON.
+Pagination/sorting:
+Not implemented globally; specific endpoints provide limit params.
+Validation and errors:
+Display ApiError.message; optionally show details if present.
+YouTube:
+Routes are public and CORS-enabled; safe to call directly from frontend.
+Example JSON Schemas (for client construction)
+Minimal request body examples
+Create Topic: { "name":"Java Basics","description":"Intro","purpose":"LEARNING","language":"en","level":"BEGINNER","estimatedDurationMinutes":90 }
+Create Video (linked to topic id=1): { "youtubeId":"abc123","title":"Lesson 1","channel":"Teacher","duration":600,"language":"en","position":1,"topic":{"id":1} }
+Create Quiz: { "subTopic":"Basics","difficulty":"EASY","language":"en","purpose":"LEARNING","active":true,"topic":{"id":1},"questionsJson":"[{"id":0,"question":"Q?","options":["A","B"],"correctAnswer":"A"}]" }
+Create Progress: { "topic":{"id":1},"status":"IN_PROGRESS","secondsWatched":120 }
+Create Learning Path: { "name":"Java Track","description":"Full path","purpose":"JOB_INTERVIEW","language":"en","level":"BEGINNER","estimatedHours":40,"isPublic":true }
+Common error response (ApiError): { "timestamp": "2025-09-06T12:34:56.789", "path": "/api/topics/999", "code": "NOT_FOUND", "message": "Topic not found", "details": null }
+Business Rules and Gotchas
+Registration errors: email and username must be unique; returns 400 with a user-friendly message string (not ApiError in AuthController).
+/api/auth/me: Treated as protected; requires token even though path is permitted.
+Video reorder: Must pass all video IDs for the topic; size must match existing count; all IDs must belong to the topic.
+Quiz submission: Answer keys must be q0..qN matching the stored questions order.
+Progress auto-complete: In a helper method, >300 seconds may mark COMPLETED (placeholder).
+Scorecard stats:
+Accuracy ~ completed topics / total tracked
+Consistency ~ recent activity in last 7 days
+Discipline ~ not NOT_STARTED
+Dedication ~ hours watched scaled (10 hours → 100%)
+StreakDays simplified
+YouTube keys: Backend needs youtube.api.key and youtube.api.application-name; frontend should not manage these.
+Swagger/OpenAPI
+Publicly accessible at /swagger-ui.html (if running).
+Use as a reference in dev to visualize endpoints.
+Production Considerations (for frontend awareness)
+Token refresh not implemented: handle expiration by redirecting to login.
+No RBAC: If roles are later added, include role checks in UI.
+CORS: If frontend served from a different origin, ensure CORS is enabled server-side or use reverse proxy.
+Ports: Verify effective backend port; dev config may not override if mis-indented.
+This prompt contains all routes, data shapes, auth requirements, rules, and example calls. Build the frontend to:
+Provide login/register.
+Store and apply Bearer tokens.
+List/manage topics, videos, quizzes.
+Track progress per user+topic.
+Generate/submit quizzes.
+Create/manage learning paths (with public browsing).
+Render dashboard stats, activity, and recommendations.
+Integrate public YouTube discovery UI.
+End of master prompt.

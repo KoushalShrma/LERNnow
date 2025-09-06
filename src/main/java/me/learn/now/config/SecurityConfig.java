@@ -39,6 +39,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/youtube/**").permitAll()
                         // Hinglish: Swagger docs ke liye open access
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Hinglish: Root endpoint ko public kar diya testing ke liye
+                        .requestMatchers("/", "/health", "/actuator/**").permitAll()
                         // Hinglish: baki sab authenticated users ke liye
                         .anyRequest().authenticated()
                 )

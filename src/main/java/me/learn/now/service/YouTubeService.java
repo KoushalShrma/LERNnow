@@ -62,10 +62,10 @@ public class YouTubeService {
             // Hinglish: YouTube search query banate hai educational videos ke liye
             String searchQuery = keyword + " tutorial programming learn";
 
-            YouTube.Search.List search = youTube.search().list("snippet");
+            YouTube.Search.List search = youTube.search().list(List.of("snippet"));
             search.setKey(apiKey);
             search.setQ(searchQuery);
-            search.setType("video");
+            search.setType(List.of("video"));
             search.setMaxResults((long) maxResults);
             search.setOrder("relevance");
             search.setVideoDefinition("high");
@@ -119,9 +119,9 @@ public class YouTubeService {
             }
 
             // Hinglish: video statistics API call karte hai
-            YouTube.Videos.List videoRequest = youTube.videos().list("statistics,contentDetails");
+            YouTube.Videos.List videoRequest = youTube.videos().list(List.of("statistics", "contentDetails"));
             videoRequest.setKey(apiKey);
-            videoRequest.setId(videoIds.toString());
+            videoRequest.setId(List.of(videoIds.toString()));
 
             VideoListResponse videoResponse = videoRequest.execute();
 

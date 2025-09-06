@@ -2,8 +2,11 @@ spring:
   profiles:
     active: dev
 
+  config:
+    import: optional:application-secret.yml
+
 # YouTube API configuration
 youtube:
   api:
-    key: AIzaSyA5DX1ZA5hhtjp2dfueCVnHkMH7hqSfLX8
-    application-name: LEARNnow-YouTube-Integration
+    key: ${youtube.api.key}
+    application-name: ${youtube.api.application-name}

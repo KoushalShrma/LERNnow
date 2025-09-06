@@ -21,17 +21,25 @@ public class ScoreCard {
     @JoinColumn(name="uId", referencedColumnName = "uId")
     private User user;
 
+    // Add topic relationship
+    @ManyToOne
+    @JoinColumn(name = "tId")
+    private Topic topic;
+
     private Double accuracy = 0.0; // Hinglish: default 0 se start karte hai
     private Double consistency = 0.0;
     private Double discipline = 0.0;
     private Double dedication = 0.0;
     private Integer streakDays = 0; // Hinglish: streak 0 se start
     private LocalDateTime updateAt;
+    private LocalDateTime createdAt;
+    private double score = 0.0;
 
     @PrePersist
     protected void onCreate() {
         // Hinglish: naya scorecard create hone pe timestamp set kar dete hai
         updateAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
@@ -102,5 +110,35 @@ public class ScoreCard {
 
     public void setUpdateAt(LocalDateTime updateAt) {
         this.updateAt = updateAt;
+    }
+
+    // Add missing methods required by DashboardService
+
+    public Topic getTopic() {
+        return topic;
+    }
+
+    public void setTopic(Topic topic) {
+        this.topic = topic;
+    }
+
+    public Long getTopicId() {
+        return topic != null ? topic.getId() : null;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
     }
 }

@@ -1,131 +1,146 @@
-<p align="center">
-  <img src="docs/banner.svg" alt="LEARNnow banner" width="100%"/>
-</p>
+# LEARNnow Platform
 
-<h1 align="center">LEARNnow — Smart Learning Web App</h1>
-
-<p align="center">
-  <b>Transform scattered YouTube learning into structured, goal‑oriented journeys.</b>
-</p>
-
-<p align="center">
-  <a href="https://www.oracle.com/java/technologies/downloads/"><img alt="Java" src="https://img.shields.io/badge/Java-21-0b1220?logo=openjdk&logoColor=white"></a>
-  <a href="https://spring.io/projects/spring-boot"><img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.5-green?logo=springboot&logoColor=white"></a>
-  <a href="https://www.mysql.com/"><img alt="MySQL" src="https://img.shields.io/badge/MySQL-8-005e8a?logo=mysql&logoColor=white"></a>
-  <img alt="Status" src="https://img.shields.io/badge/Status-WIP-orange">
-  <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-blue">
-</p>
-
----
-
-## TL;DR
-LEARNnow turns random tutorials into a personalized path with curated YouTube videos, adaptive quizzes, progress scorecards, and light gamification.
-
-## Demo (Dev)
-- Start backend (MySQL running; dev profile uses `application-dev.yml`):
-  - Windows PowerShell:
-    - `./mvnw -Dspring-boot.run.profiles=dev spring-boot:run`
-- Open Swagger UI (auto docs): http://localhost:8080/swagger-ui/index.html
-- Try these quickly:
-  - POST /api/users (create user)
-  - GET  /api/topics
-  - GET  /api/topics/{id}/videos
-  - PATCH /api/topics/{id}/videos/reorder
-  - GET  /api/users/{userId}/progress
-  - PUT  /api/users/{userId}/progress/by-topic/{topicId}/status?value=IN_PROGRESS
-
-Note: Dev security is relaxed for speed (API + Swagger are open). Passwords are hashed with BCrypt.
-
-## Why
-- Turn “random tutorials” into a goal‑oriented path.
-- Practice real-world stack: Spring Boot + MySQL + React (to be added).
-- Build an interview‑ready, portfolio‑quality project.
-
-## Vision
-- Personalized learning paths by topic, purpose (Job Interview / Upskill / Exams), and language.
-- Curated YouTube videos in sequence; chapter awareness; alternatives for coverage.
-- Adaptive quizzes with explanations and progress tracking.
-- Scorecard measuring accuracy, consistency, discipline, dedication; shareable.
-- AI mentor mode for summaries, doubts, and next‑step recommendations.
-- Gamification: XP, streaks, badges, leaderboards; career goals and peer discussions.
-
-## Tech Stack
-- Backend: Java 21, Spring Boot 3, Spring Data JPA
-- Database: MySQL (dev/prod)
-- Dev/Tooling: Maven Wrapper, Lombok, Swagger UI (springdoc)
-- Planned: Flyway (migrations), OpenAPI polish, React + TypeScript frontend
-
----
-
-## Contents
-- Features (coming up)
-- Architecture (coming up)
-- Quickstart (updated)
-- API Preview (updated)
-- Project Structure
-- Roadmap
-- Track Logs
+A fully integrated learning platform with AI-powered course generation, interactive learning experiences, and progress tracking.
 
 ## Project Structure
-```
-src/main/java/me/learn/now
-  ├─ config/           # SecurityConfig, etc.
-  ├─ controller/       # REST controllers (Users, Topics, Videos, Quizzes, Progress, ScoreCard)
-  ├─ dto/              # (reserved for later)
-  ├─ exception/        # ApiError + GlobalExceptionHandler (clean 400/404 messages)
-  ├─ integration/      # youtube/ → YoutubeClient (stub; plug real API later)
-  ├─ model/            # JPA entities + enums
-  ├─ repository/       # Spring Data repositories
-  ├─ service/          # Business services
-  └─ LearNnowApplication.java
-```
 
-## Quickstart (Backend)
-1) Prereqs
-   - JDK 21+, Maven, MySQL running (dev DB configured in `application-dev.yml`)
-2) Run in dev profile
+The LEARNnow platform consists of two main components:
+
+1. **Backend (Spring Boot)**
+   - REST API endpoints in `src/main/java/me/learn/now/controller`
+   - Database models in `src/main/java/me/learn/now/model`
+   - Business logic in `src/main/java/me/learn/now/service`
+   - Data repositories in `src/main/java/me/learn/now/repository`
+
+2. **Frontend (Next.js)**
+   - Located in the `Desired Frontend` directory
+   - Modern app router architecture
+   - TailwindCSS for styling
+   - API routes for server-side data fetching
+
+## Getting Started
+
+### Prerequisites
+
+- Java 17 or higher
+- Node.js 18 or higher
+- npm 9 or higher
+- PostgreSQL database (configured in application.yml)
+
+### Database Setup
+
+Run the database setup script to create the necessary tables and initial data:
+
 ```bash
-./mvnw -Dspring-boot.run.profiles=dev spring-boot:run
+psql -U your_username -d your_database -f database_setup.sql
 ```
-3) Docs + Try it
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
-- JSON in/out; dev security is open for speed.
 
-## API Preview (MVP slice)
-- Users
-  - POST /api/users → create user (password stored as BCrypt hash)
-  - GET  /api/users → list users
-  - GET  /api/users/{id} → get user (404 if not found)
-  - PUT  /api/users/{id} → update name/email
-  - PUT  /api/users/pass/{id} → update password (disallows old password)
-- Topics
-  - CRUD on /api/topics
-  - GET  /api/topics/{id}/videos (ordered by vPosition)
-  - GET  /api/topics/{id}/quizzes
-  - PATCH /api/topics/{id}/videos/reorder (body: [videoId...])
-- Videos
-  - CRUD on /api/videos
-- Quizzes
-  - CRUD on /api/quizzes
-  - PATCH /api/quizzes/{id}/active?active=true|false
-- Progress
-  - Base: /api/users/{userId}/progress (list/create/get/patch/delete)
-  - Helpers: by-topic get + set status/watch seconds
-- Scorecard
-  - GET /api/users/{userId}/scorecard, plus basic CRUD under /api/scorecards
+### Configuration
 
-## YouTube Plan
-- `integration/youtube/YoutubeClient` is a stub right now (Hinglish comments inside).
-- When API key ready: implement search/list/details, normalize durations, language, and chapters.
+1. **Backend Configuration**:
+   - Update `src/main/resources/application.yml` with your database settings
+   - If needed, create `application-secret.yml` for sensitive information like API keys
 
-## Roadmap
-- [x] Day 1: Entities + mappings + repos
-- [x] Day 2-3: Users API + Topic/Videos + basic Quizzes/Progress/ScoreCard
-- [x] Swagger UI + Global error handler (ApiError)
-- [ ] Flyway V1 (Topic/Video) + seed data
-- [ ] DTOs + validation + better errors per field
-- [ ] Frontend (React + TS) pages + simple path builder
-- [ ] Caching + rate-limit for YouTube integration
+2. **Frontend Configuration**:
+   - The frontend is already configured to connect to the backend at `http://localhost:8080/api`
+   - Environment variables are set in `.env.local`
 
-## Track Logs
-- See `Track/` folder for day-wise Hinglish recaps
+### Running the Platform
+
+#### Option 1: Using the Start Script (Recommended)
+
+Run the provided batch script to start both the backend and frontend:
+
+```bash
+./start-learnnow.bat
+```
+
+This will:
+- Start the Spring Boot backend on port 8080
+- Start the Next.js frontend on port 3000
+- Open browser windows for both
+
+#### Option 2: Manual Start
+
+**Backend:**
+```bash
+./mvnw spring-boot:run
+```
+
+**Frontend:**
+```bash
+cd "Desired Frontend"
+npm install
+npm run dev
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/me` - Get current user info
+
+### Topics/Courses
+- `GET /api/topics` - List all topics
+- `GET /api/topics/{id}` - Get topic by ID
+- `POST /api/topics` - Create new topic
+- `PUT /api/topics/{id}` - Update topic
+- `DELETE /api/topics/{id}` - Delete topic
+- `GET /api/topics/{id}/videos` - Get videos for a topic
+
+### User Progress
+- `GET /api/user-progress` - Get user's learning progress
+- `POST /api/user-progress` - Update user's progress
+- `GET /api/user-progress/course/{courseId}` - Get progress for specific course
+
+### Quizzes
+- `GET /api/quizzes` - List all quizzes
+- `GET /api/quizzes/{id}` - Get quiz by ID
+- `POST /api/quizzes` - Create new quiz
+- `PUT /api/quizzes/{id}` - Update quiz
+- `DELETE /api/quizzes/{id}` - Delete quiz
+
+### Videos
+- `GET /api/videos` - List all videos
+- `GET /api/videos/{id}` - Get video by ID
+- `POST /api/videos` - Create new video
+- `PUT /api/videos/{id}` - Update video
+- `DELETE /api/videos/{id}` - Delete video
+
+## Architecture
+
+The LEARNnow platform follows a modern architecture with complete separation between the frontend and backend:
+
+1. **Backend**: Spring Boot REST API providing:
+   - Secure authentication with JWT
+   - Database operations via JPA/Hibernate
+   - Business logic in service layer
+   - YouTube API integration for video content
+
+2. **Frontend**: Next.js application with:
+   - Server components for better SEO and performance
+   - Client components for interactive elements
+   - API routes to proxy requests to the backend
+   - Tailwind CSS for responsive design
+
+3. **Integration**: The frontend communicates with the backend via:
+   - API client in `lib/api-client.js`
+   - Fetch API for data retrieval
+   - JWT token-based authentication
+
+## Contributing
+
+To contribute to the LEARNnow platform:
+
+1. Create a feature branch from `main`
+2. Make your changes
+3. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For questions or issues, please contact the development team.
