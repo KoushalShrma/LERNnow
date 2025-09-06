@@ -6,8 +6,9 @@ import { AuthProvider } from '@/hooks/useAuth.jsx';
 import Layout from '@/components/layout/Layout';
 
 // Pages
-import Home from '@/pages/Home';
+import AuthPage from '@/pages/auth/AuthPage';
 import Dashboard from '@/pages/Dashboard';
+import CoursePage from '@/pages/CoursePage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -35,16 +36,39 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public routes */}
+            {/* Auth route */}
+            <Route path="/auth" element={<AuthPage />} />
+            
+            {/* Protected routes with layout */}
             <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
+              <Route 
+                index 
+                element={
+                  <>
+                    <SignedIn>
+                      <Navigate to="/dashboard" replace />
+                    </SignedIn>
+                    <SignedOut>
+                      <Navigate to="/auth" replace />
+                    </SignedOut>
+                  </>
+                } 
+              />
               
-              {/* Protected routes */}
               <Route 
                 path="dashboard" 
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="course/:courseId" 
+                element={
+                  <ProtectedRoute>
+                    <CoursePage />
                   </ProtectedRoute>
                 } 
               />

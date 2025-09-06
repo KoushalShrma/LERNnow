@@ -2,7 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 // Create axios instance
 const api = axios.create({
@@ -13,46 +13,28 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// Token management
-const TOKEN_KEY = 'learnnow_token';
-const USER_KEY = 'learnnow_user';
-
+// Token management (simplified for Clerk integration)
 export const tokenManager = {
-  getToken: () => localStorage.getItem(TOKEN_KEY),
-  setToken: (token) => localStorage.setItem(TOKEN_KEY, token),
-  removeToken: () => localStorage.removeItem(TOKEN_KEY),
+  getToken: () => null, // Clerk handles tokens automatically
+  setToken: () => {}, // Not needed with Clerk
+  removeToken: () => {}, // Not needed with Clerk
   getUser: () => {
-    const user = localStorage.getItem(USER_KEY);
+    const user = localStorage.getItem('learnnow_user');
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user) => localStorage.setItem(USER_KEY, JSON.stringify(user)),
-  removeUser: () => localStorage.removeItem(USER_KEY),
+  setUser: (user) => localStorage.setItem('learnnow_user', JSON.stringify(user)),
+  removeUser: () => localStorage.removeItem('learnnow_user'),
   clear: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('learnnow_user');
   }
 };
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = tokenManager.getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      tokenManager.clear();
-      window.location.href = '/login';
-      toast.error('Session expired. Please login again.');
+      toast.error('Authentication required. Please sign in.');
     } else if (error.response?.status === 403) {
       toast.error('Access denied. Insufficient permissions.');
     } else if (error.response?.status >= 500) {
@@ -64,13 +46,7 @@ api.interceptors.response.use(
   }
 );
 
-// API endpoints based on backend analysis
-export const authAPI = {
-  register: (userData) => api.post('/api/auth/register', userData),
-  login: (credentials) => api.post('/api/auth/login', credentials),
-  getCurrentUser: () => api.get('/api/auth/me'),
-};
-
+// API endpoints
 export const topicsAPI = {
   getAll: () => api.get('/api/topics'),
   getById: (id) => api.get(`/api/topics/${id}`),
