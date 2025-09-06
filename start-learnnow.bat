@@ -12,7 +12,7 @@ timeout /t 10 /nobreak
 
 REM Start the Next.js frontend
 echo Starting Next.js frontend...
-start cmd /k "cd %~dp0\Desired Frontend && npm run dev"
+start cmd /k "cd %~dp0\frontend && npm run dev"
 
 echo.
 echo LEARNnow platform is starting up!

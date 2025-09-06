@@ -13,7 +13,7 @@ The LEARNnow platform consists of two main components:
    - Data repositories in `src/main/java/me/learn/now/repository`
 
 2. **Frontend (Next.js)**
-   - Located in the `Desired Frontend` directory
+   - Located in the `frontend` directory
    - Modern app router architecture
    - TailwindCSS for styling
    - API routes for server-side data fetching
@@ -69,7 +69,7 @@ This will:
 
 **Frontend:**
 ```bash
-cd "Desired Frontend"
+cd "frontend"
 npm install
 npm run dev
 ```
