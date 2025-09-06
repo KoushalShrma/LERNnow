@@ -2,14 +2,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
-import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { AuthProvider } from '@/hooks/useAuth.jsx';
 import Layout from '@/components/layout/Layout';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Pages
 import Home from '@/pages/Home';
-import Login from '@/pages/auth/Login';
-import Register from '@/pages/auth/Register';
 import Dashboard from '@/pages/Dashboard';
 
 // Create a client
