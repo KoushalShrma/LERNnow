@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/clerk-react';
 import { 
   ArrowRight, 
   BookOpen, 
@@ -12,12 +13,10 @@ import {
   Target,
   Brain
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
 
   const features = [
     {
@@ -99,28 +98,28 @@ const Home = () => {
                 that adapt to your unique learning style and goals.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                {isAuthenticated ? (
+                <SignedIn>
                   <Link to="/dashboard">
                     <Button size="xl" className="w-full sm:w-auto">
                       Go to Dashboard
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
-                ) : (
-                  <>
-                    <Link to="/register">
-                      <Button size="xl" className="w-full sm:w-auto">
-                        Start Learning Free
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                    <Link to="/login">
-                      <Button variant="outline" size="xl" className="w-full sm:w-auto">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-                )}
+                </SignedIn>
+                
+                <SignedOut>
+                  <SignUpButton mode="modal">
+                    <Button size="xl" className="w-full sm:w-auto">
+                      Start Learning Free
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </SignUpButton>
+                  <SignInButton mode="modal">
+                    <Button variant="outline" size="xl" className="w-full sm:w-auto">
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
               </div>
             </motion.div>
 
@@ -316,9 +315,9 @@ const Home = () => {
             <p className="text-xl text-white/90 mb-8">
               Join thousands of learners who are already transforming their careers with LEARNnow
             </p>
-            {!isAuthenticated && (
+            <SignedOut>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register">
+                <SignUpButton mode="modal">
                   <Button 
                     size="xl" 
                     className="bg-white text-primary-600 hover:bg-neutral-50 w-full sm:w-auto"
@@ -326,7 +325,7 @@ const Home = () => {
                     Get Started Free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
+                </SignUpButton>
                 <Link to="/courses">
                   <Button 
                     variant="outline" 
@@ -337,7 +336,7 @@ const Home = () => {
                   </Button>
                 </Link>
               </div>
-            )}
+            </SignedOut>
           </motion.div>
         </div>
       </section>
