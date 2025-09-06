@@ -29,11 +29,22 @@ The LEARNnow platform consists of two main components:
 
 ### Database Setup
 
-Run the database setup script to create the necessary tables and initial data:
+Set up MySQL database and run the database setup script to create the necessary tables and initial data:
 
+1. **Install and start MySQL server**:
+   - Make sure MySQL server is running on localhost:3306
+   - Create a database named `learnnow_dev` or let the application create it automatically
+
+2. **Run the database setup script**:
 ```bash
-psql -U your_username -d your_database -f database_setup.sql
+mysql -u root -p learnnow_dev < database_setup.sql
 ```
+
+3. **Update MySQL credentials** (if different from defaults):
+   - Username: `root`
+   - Password: `8109133203`
+   - Database: `learnnow_dev`
+   - Port: `3306`
 
 ### Configuration
 
